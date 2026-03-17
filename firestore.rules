@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isRoomModerator(roomId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid)).data.role == 'moderator';
+    }
+    
+    function isRoomParticipant(roomId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid));
+    }
+    
+    // Rooms collection
+    match /rooms/{roomId} {
+      // Anyone can read room data
+      allow read: if true;
+      
+      // Anyone can create a room
+      allow create: if isAuthenticated();
+      
+      // Only moderator can update room state
+      allow update: if isRoomModerator(roomId);
+      
+      // Only moderator can delete room
+      allow delete: if isRoomModerator(roomId);
+      
+      // Participants subcollection
+      match /participants/{participantId} {
+        // Anyone in the room can read participants
+        allow read: if true;
+        
+        // Users can add themselves as participants
+        allow create: if isAuthenticated() && request.auth.uid == participantId;
+        
+        // Users can update their own participant data, moderator can update anyone
+        allow update: if isAuthenticated() && 
+                        (request.auth.uid == participantId || isRoomModerator(roomId));
+        
+        // Moderator can remove participants
+        allow delete: if isRoomModerator(roomId) || 
+                        (isAuthenticated() && request.auth.uid == participantId);
+      }
+      
+      // Votes subcollection
+      match /votes/{voteId} {
+        // Anyone in the room can read votes
+        allow read: if true;
+        
+        // Participants can create their own votes
+        allow create: if isAuthenticated() && 
+                        isRoomParticipant(roomId) &&
+                        request.auth.uid == request.resource.data.userId;
+        
+        // Users can update their own votes (before reveal)
+        allow update: if isAuthenticated() && 
+                        request.auth.uid == resource.data.userId &&
+                        get(/databases/$(database)/documents/rooms/$(roomId)).data.state != 'revealed';
+        
+        // Moderator can delete votes (for reset)
+        allow delete: if isRoomModerator(roomId);
+      }
+      
+      // Rounds subcollection
+      match /rounds/{roundId} {
+        // Anyone can read rounds
+        allow read: if true;
+        
+        // Moderator can create rounds
+        allow create: if isRoomModerator(roomId);
+        
+        // Moderator can update rounds
+        allow update: if isRoomModerator(roomId);
+        
+        // Moderator can delete rounds
+        allow delete: if isRoomModerator(roomId);
+      }
+    }
+    
+    // Users collection (for authenticated users with profiles)
+    match /users/{userId} {
+      // Users can read their own data
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can create their own profile
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can update their own profile
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can delete their own profile
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
