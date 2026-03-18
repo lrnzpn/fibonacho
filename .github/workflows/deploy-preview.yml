@@ -5,8 +5,16 @@ on:
     branches: [main]
 
 jobs:
+  test:
+    name: Run Tests Before Deploy
+    uses: ./.github/workflows/test.yml
+    with:
+      node-version: '20'
+    secrets: inherit
+
   deploy-preview:
     name: Deploy Preview to Vercel
+    needs: test
     runs-on: ubuntu-latest
     
     steps:
@@ -18,6 +26,19 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-deploy-preview-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deploy-preview-${{ env.cache-name }}-
+            ${{ runner.os }}-deploy-preview-
+            ${{ runner.os }}-
 
       - name: Install dependencies
         run: npm ci
