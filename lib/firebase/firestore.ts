@@ -7,16 +7,16 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
   orderBy,
   onSnapshot,
-  Timestamp,
   serverTimestamp,
+  Timestamp,
   DocumentReference,
   CollectionReference,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './config';
-import type { Room, Participant, Vote, Round, User } from '@/types';
+import type { Room, Participant, Vote, Round, User, Reaction } from '@/types';
 
 export const roomsCollection = () => collection(db, 'rooms') as CollectionReference<Room>;
 export const roomDoc = (roomId: string) => doc(db, 'rooms', roomId) as DocumentReference<Room>;
@@ -101,6 +101,11 @@ export const removeParticipant = async (roomId: string, participantId: string) =
   await deleteDoc(participantDoc(roomId, participantId));
 };
 
+export const getParticipantCount = async (roomId: string): Promise<number> => {
+  const participantsSnapshot = await getDocs(participantsCollection(roomId));
+  return participantsSnapshot.size;
+};
+
 export const submitVote = async (
   roomId: string,
   voteId: string,
@@ -131,7 +136,7 @@ export const updateVote = async (roomId: string, voteId: string, value: Vote['va
 
 export const clearVotes = async (roomId: string) => {
   const votesSnapshot = await getDocs(votesCollection(roomId));
-  const deletePromises = votesSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+  const deletePromises = votesSnapshot.docs.map((doc: QueryDocumentSnapshot) => deleteDoc(doc.ref));
   await Promise.all(deletePromises);
 };
 
@@ -156,5 +161,35 @@ export const subscribeToVotes = (roomId: string, callback: (votes: Vote[]) => vo
   return onSnapshot(votesCollection(roomId), (snapshot) => {
     const votes = snapshot.docs.map((doc) => doc.data());
     callback(votes);
+  });
+};
+
+export const reactionsCollection = (roomId: string) =>
+  collection(db, 'rooms', roomId, 'reactions') as CollectionReference;
+
+export const addReaction = async (
+  roomId: string,
+  userId: string,
+  type: string,
+  x?: number,
+  y?: number
+) => {
+  const reactionData = {
+    userId,
+    type,
+    timestamp: Timestamp.now(),
+    x,
+    y,
+  };
+
+  await setDoc(doc(reactionsCollection(roomId)), reactionData);
+  return reactionData;
+};
+
+export const subscribeToReactions = (roomId: string, callback: (reactions: Reaction[]) => void) => {
+  const q = query(reactionsCollection(roomId), orderBy('timestamp', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const reactions = snapshot.docs.map((doc) => doc.data() as Reaction);
+    callback(reactions);
   });
 };

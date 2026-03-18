@@ -19,6 +19,12 @@ service cloud.firestore {
              exists(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid));
     }
     
+    function isValidDisplayName() {
+      return request.resource.data.displayName is string &&
+             request.resource.data.displayName.size() > 0 &&
+             request.resource.data.displayName.size() <= 30;
+    }
+    
     // Rooms collection
     match /rooms/{roomId} {
       // Anyone can read room data
@@ -38,12 +44,16 @@ service cloud.firestore {
         // Anyone in the room can read participants
         allow read: if true;
         
-        // Users can add themselves as participants
-        allow create: if isAuthenticated() && request.auth.uid == participantId;
+        // Users can add themselves as participants with valid display name
+        allow create: if isAuthenticated() && 
+                        request.auth.uid == participantId &&
+                        isValidDisplayName();
         
         // Users can update their own participant data, moderator can update anyone
+        // Display name must remain valid on updates
         allow update: if isAuthenticated() && 
-                        (request.auth.uid == participantId || isRoomModerator(roomId));
+                        (request.auth.uid == participantId || isRoomModerator(roomId)) &&
+                        isValidDisplayName();
         
         // Moderator can remove participants
         allow delete: if isRoomModerator(roomId) || 
@@ -82,6 +92,18 @@ service cloud.firestore {
         
         // Moderator can delete rounds
         allow delete: if isRoomModerator(roomId);
+      }
+      
+      // Reactions subcollection
+      match /reactions/{reactionId} {
+        // Anyone can read reactions
+        allow read: if true;
+        
+        // Authenticated participants can create reactions
+        allow create: if isAuthenticated() && isRoomParticipant(roomId);
+        
+        // No updates or deletes - reactions are ephemeral
+        allow update, delete: if false;
       }
     }
     

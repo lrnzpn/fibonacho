@@ -72,7 +72,7 @@ const checkConsensus = (numericVotes: FibonacciValue[]): boolean => {
   return withinRange.length / numericVotes.length >= 0.75;
 };
 
-export const exportVotesToCSV = (votes: Vote[], roomId: string): string => {
+export const exportVotesToCSV = (votes: Vote[]): string => {
   const headers = ['User ID', 'Vote Value', 'Round ID', 'Created At', 'Updated At'];
   const rows = votes.map((vote) => [
     vote.userId,

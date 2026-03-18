@@ -1,63 +1,105 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { generateRoomId, getSessionStorage, setSessionStorage } from '@/lib/utils/room';
+import { LIMITS } from '@/lib/constants';
 
 export default function Home() {
+  const router = useRouter();
+  const [roomId, setRoomId] = useState('');
+  const [error, setError] = useState('');
+
+  const handleCreateRoom = () => {
+    const lastCreationTime = getSessionStorage('lastRoomCreation');
+    const now = Date.now();
+
+    if (lastCreationTime) {
+      const timeSinceLastCreation = now - parseInt(lastCreationTime);
+      if (timeSinceLastCreation < LIMITS.ROOM_CREATION_COOLDOWN_MS) {
+        const remainingSeconds = Math.ceil(
+          (LIMITS.ROOM_CREATION_COOLDOWN_MS - timeSinceLastCreation) / 1000
+        );
+        setError(`Please wait ${remainingSeconds} seconds before creating another room`);
+        setTimeout(() => setError(''), 3000);
+        return;
+      }
+    }
+
+    setSessionStorage('lastRoomCreation', now.toString());
+    const newRoomId = generateRoomId();
+    router.push(`/room/${newRoomId}`);
+  };
+
+  const handleJoinRoom = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (roomId.trim()) {
+      router.push(`/room/${roomId.trim()}`);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex min-h-screen items-center justify-center p-8">
+      <main className="w-full max-w-xl space-y-10">
+        <div className="space-y-6 text-center">
+          <h1 className="mb-2 text-8xl leading-none font-bold tracking-tight">
+            <span className="text-[var(--accent-primary)]">Fibo</span>
+            <span className="text-[var(--text)]">nacho</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto max-w-xl px-4 text-2xl leading-relaxed text-[var(--text-muted)]">
+            A high-vibe, real-time pointing poker tool for agile teams.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="space-y-2">
+          {error && (
+            <div className="bg-opacity-10 rounded-2xl border-2 border-red-500 bg-red-500 p-4">
+              <p className="text-center text-sm font-medium text-red-500">{error}</p>
+            </div>
+          )}
+          <div className="py-2">
+            <button
+              onClick={handleCreateRoom}
+              className="w-full rounded-2xl bg-[var(--accent-primary)] px-8 py-4 text-xl font-bold text-[var(--background)] transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+            >
+              Create New Room
+            </button>
+          </div>
+
+          <div className="relative py-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t-2 border-[var(--surface)]"></div>
+            </div>
+            <div className="relative flex justify-center text-base">
+              <span className="bg-[var(--background)] px-6 py-2 font-semibold text-[var(--text-muted)]">
+                or join existing
+              </span>
+            </div>
+          </div>
+
+          <form onSubmit={handleJoinRoom} className="space-y-2 py-2">
+            <input
+              type="text"
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+              placeholder="ENTER ROOM CODE"
+              className="w-full rounded-2xl border-2 border-transparent bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] text-[var(--text)] uppercase transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+              maxLength={8}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <button
+              type="submit"
+              disabled={!roomId.trim()}
+              className="w-full rounded-2xl bg-[var(--surface)] px-8 py-4 text-xl font-bold text-[var(--text)] transition-all hover:scale-[1.02] hover:bg-[var(--accent-secondary)] hover:text-[var(--background)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text)]"
+            >
+              Join Room
+            </button>
+          </form>
+        </div>
+
+        <div className="pt-8 text-center">
+          <p className="text-base leading-relaxed text-[var(--text-muted)]">
+            No sign-up required. Start estimating in seconds.
+          </p>
         </div>
       </main>
     </div>

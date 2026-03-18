@@ -19,6 +19,9 @@ export interface Room {
   state: RoomState;
   currentRound: number;
   moderatorId: string;
+  currentTopic?: string;
+  timerEndsAt?: Timestamp;
+  timerDuration?: number;
 }
 
 export interface Participant {
