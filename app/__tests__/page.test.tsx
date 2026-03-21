@@ -20,8 +20,9 @@ describe('Home Page', () => {
     render(<Home />);
 
     expect(screen.getByText('Fibo', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('nacho', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText(/high-vibe, real-time pointing poker tool/i)).toBeInTheDocument();
+    const nachoElements = screen.getAllByText('nacho', { exact: false });
+    expect(nachoElements.length).toBeGreaterThan(0);
+    expect(screen.getByText(/Nacho average pointing poker/i)).toBeInTheDocument();
   });
 
   it('should render Create New Room button', () => {

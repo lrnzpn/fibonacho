@@ -17,6 +17,8 @@ export default function TopicEditor() {
   const { room, participants } = context;
   const currentParticipant = participants.find((p) => p.uid === user.uid);
   const isModerator = currentParticipant?.role === 'moderator';
+  const isRoomOwner = room?.moderatorId === user.uid;
+  const canEdit = isModerator || isRoomOwner;
 
   if (!room) return null;
 
@@ -60,7 +62,7 @@ export default function TopicEditor() {
           )}
         </div>
 
-        {isModerator && (
+        {canEdit && (
           <div className="flex gap-2">
             {isEditing ? (
               <>

@@ -118,7 +118,7 @@ describe('ParticipantsList', () => {
       </RoomProvider>
     );
 
-    expect(screen.getByText('Moderator')).toBeInTheDocument();
+    expect(screen.getByText('Mod')).toBeInTheDocument();
   });
 
   it('should show waiting status for voters who have not voted', () => {

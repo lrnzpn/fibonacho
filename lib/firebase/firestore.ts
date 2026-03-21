@@ -16,7 +16,16 @@ import {
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './config';
-import type { Room, Participant, Vote, Round, User, Reaction } from '@/types';
+import type {
+  Room,
+  Participant,
+  Vote,
+  Round,
+  User,
+  Reaction,
+  HistoryEntry,
+  VoteValue,
+} from '@/types';
 
 export const roomsCollection = () => collection(db, 'rooms') as CollectionReference<Room>;
 export const roomDoc = (roomId: string) => doc(db, 'rooms', roomId) as DocumentReference<Room>;
@@ -38,6 +47,11 @@ export const roundDoc = (roomId: string, roundId: string) =>
 
 export const usersCollection = () => collection(db, 'users') as CollectionReference<User>;
 export const userDoc = (userId: string) => doc(db, 'users', userId) as DocumentReference<User>;
+
+export const historyCollection = (roomId: string) =>
+  collection(db, 'rooms', roomId, 'history') as CollectionReference<HistoryEntry>;
+export const historyDoc = (roomId: string, entryId: string) =>
+  doc(db, 'rooms', roomId, 'history', entryId) as DocumentReference<HistoryEntry>;
 
 export const createRoom = async (roomId: string, moderatorId: string): Promise<Room> => {
   const roomData: Room = {
@@ -192,4 +206,44 @@ export const subscribeToReactions = (roomId: string, callback: (reactions: React
     const reactions = snapshot.docs.map((doc) => doc.data() as Reaction);
     callback(reactions);
   });
+};
+
+export const saveHistoryEntry = async (
+  roomId: string,
+  entryId: string,
+  topic: string,
+  finalEstimate: VoteValue | null,
+  median: number | null,
+  mode: number | null,
+  totalVotes: number,
+  roundNumber: number
+): Promise<HistoryEntry> => {
+  const historyData: HistoryEntry = {
+    entryId,
+    roomId,
+    topic,
+    finalEstimate,
+    median,
+    mode,
+    totalVotes,
+    completedAt: Timestamp.now(),
+    roundNumber,
+  };
+
+  await setDoc(historyDoc(roomId, entryId), historyData);
+  return historyData;
+};
+
+export const subscribeToHistory = (roomId: string, callback: (history: HistoryEntry[]) => void) => {
+  const q = query(historyCollection(roomId), orderBy('completedAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const history = snapshot.docs.map((doc) => doc.data() as HistoryEntry);
+    callback(history);
+  });
+};
+
+export const getHistory = async (roomId: string): Promise<HistoryEntry[]> => {
+  const q = query(historyCollection(roomId), orderBy('completedAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => doc.data() as HistoryEntry);
 };

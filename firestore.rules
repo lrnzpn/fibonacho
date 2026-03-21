@@ -14,6 +14,11 @@ service cloud.firestore {
              get(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid)).data.role == 'moderator';
     }
     
+    function isRoomOwner(roomId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/rooms/$(roomId)).data.moderatorId == request.auth.uid;
+    }
+    
     function isRoomParticipant(roomId) {
       return isAuthenticated() && 
              exists(/databases/$(database)/documents/rooms/$(roomId)/participants/$(request.auth.uid));
@@ -33,11 +38,11 @@ service cloud.firestore {
       // Anyone can create a room
       allow create: if isAuthenticated();
       
-      // Only moderator can update room state
-      allow update: if isRoomModerator(roomId);
+      // Only moderator or room owner can update room state
+      allow update: if isRoomModerator(roomId) || isRoomOwner(roomId);
       
-      // Only moderator can delete room
-      allow delete: if isRoomModerator(roomId);
+      // Only moderator or room owner can delete room
+      allow delete: if isRoomModerator(roomId) || isRoomOwner(roomId);
       
       // Participants subcollection
       match /participants/{participantId} {
@@ -49,14 +54,14 @@ service cloud.firestore {
                         request.auth.uid == participantId &&
                         isValidDisplayName();
         
-        // Users can update their own participant data, moderator can update anyone
+        // Users can update their own participant data, moderator/owner can update anyone
         // Display name must remain valid on updates
         allow update: if isAuthenticated() && 
-                        (request.auth.uid == participantId || isRoomModerator(roomId)) &&
+                        (request.auth.uid == participantId || isRoomModerator(roomId) || isRoomOwner(roomId)) &&
                         isValidDisplayName();
         
-        // Moderator can remove participants
-        allow delete: if isRoomModerator(roomId) || 
+        // Moderator/owner can remove participants
+        allow delete: if isRoomModerator(roomId) || isRoomOwner(roomId) ||
                         (isAuthenticated() && request.auth.uid == participantId);
       }
       
@@ -75,8 +80,8 @@ service cloud.firestore {
                         request.auth.uid == resource.data.userId &&
                         get(/databases/$(database)/documents/rooms/$(roomId)).data.state != 'revealed';
         
-        // Moderator can delete votes (for reset)
-        allow delete: if isRoomModerator(roomId);
+        // Moderator/owner can delete votes (for reset)
+        allow delete: if isRoomModerator(roomId) || isRoomOwner(roomId);
       }
       
       // Rounds subcollection
@@ -84,14 +89,14 @@ service cloud.firestore {
         // Anyone can read rounds
         allow read: if true;
         
-        // Moderator can create rounds
-        allow create: if isRoomModerator(roomId);
+        // Moderator/owner can create rounds
+        allow create: if isRoomModerator(roomId) || isRoomOwner(roomId);
         
-        // Moderator can update rounds
-        allow update: if isRoomModerator(roomId);
+        // Moderator/owner can update rounds
+        allow update: if isRoomModerator(roomId) || isRoomOwner(roomId);
         
-        // Moderator can delete rounds
-        allow delete: if isRoomModerator(roomId);
+        // Moderator/owner can delete rounds
+        allow delete: if isRoomModerator(roomId) || isRoomOwner(roomId);
       }
       
       // Reactions subcollection
@@ -103,6 +108,18 @@ service cloud.firestore {
         allow create: if isAuthenticated() && isRoomParticipant(roomId);
         
         // No updates or deletes - reactions are ephemeral
+        allow update, delete: if false;
+      }
+      
+      // History subcollection
+      match /history/{entryId} {
+        // Anyone can read history
+        allow read: if true;
+        
+        // Moderator/owner can create history entries
+        allow create: if isRoomModerator(roomId) || isRoomOwner(roomId);
+        
+        // No updates or deletes - history is immutable
         allow update, delete: if false;
       }
     }

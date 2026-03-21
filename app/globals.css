@@ -4,7 +4,7 @@
   --background: #0f172a;
   --surface: #1e293b;
   --accent-primary: #facc15;
-  --accent-secondary: #22c55e;
+  --accent-secondary: #fb923c;
   --text: #e2e8f0;
   --text-muted: #94a3b8;
 }
@@ -13,7 +13,7 @@
   --background: #f8fafc;
   --surface: #ffffff;
   --accent-primary: #eab308;
-  --accent-secondary: #16a34a;
+  --accent-secondary: #f97316;
   --text: #0f172a;
   --text-muted: #64748b;
 }
@@ -39,4 +39,8 @@ body {
     sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+button {
+  cursor: pointer;
 }

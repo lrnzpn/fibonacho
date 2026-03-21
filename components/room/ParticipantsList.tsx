@@ -28,31 +28,31 @@ export default function ParticipantsList() {
           return (
             <div
               key={participant.uid}
-              className={`rounded-xl border-2 p-4 transition-all ${
+              className={`rounded-xl border-2 p-3 transition-all ${
                 hasVoted
                   ? 'bg-opacity-10 border-[var(--accent-secondary)] bg-[var(--accent-secondary)] shadow-lg'
                   : 'hover:border-opacity-30 border-[var(--surface)] bg-[var(--surface)] hover:border-[var(--accent-primary)]'
               }`}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--accent-primary)] text-base font-bold text-[var(--background)]">
                   {participant.displayName.charAt(0).toUpperCase()}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <p className="truncate text-sm font-semibold text-[var(--text)]">
                     {participant.displayName}
                   </p>
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-0.5 flex items-center gap-1 overflow-hidden">
                     {participant.role === 'spectator' && (
-                      <Eye className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                      <Eye className="h-3.5 w-3.5 flex-shrink-0 text-[var(--text-muted)]" />
                     )}
                     {participant.role === 'moderator' && (
-                      <span className="text-xs font-semibold tracking-wide text-[var(--accent-primary)] uppercase">
-                        Moderator
+                      <span className="truncate text-xs font-semibold tracking-wide text-[var(--accent-primary)] uppercase">
+                        Mod
                       </span>
                     )}
                     {participant.role === 'voter' && (
-                      <span className="text-xs font-medium text-[var(--text-muted)]">
+                      <span className="truncate text-xs font-medium text-[var(--text-muted)]">
                         {hasVoted ? '✓ Voted' : 'Waiting...'}
                       </span>
                     )}

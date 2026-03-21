@@ -7,13 +7,14 @@ import { updateRoom } from '@/lib/firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
 import { Clock, Play, Pause, RotateCcw } from 'lucide-react';
 
-const TIMER_PRESETS = [60, 120, 300, 600]; // 1min, 2min, 5min, 10min
+const MAX_TIMER_SECONDS = 120; // 2 minutes maximum
 
 export default function VotingTimer() {
   const context = useContext(RoomContext);
   const { user } = useAuth();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [showPresets, setShowPresets] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [customSeconds, setCustomSeconds] = useState<string>('');
 
   useEffect(() => {
     if (!context || !user || !context.room) return;
@@ -23,7 +24,6 @@ export default function VotingTimer() {
     const isModerator = currentParticipant?.role === 'moderator';
 
     if (!room.timerEndsAt) {
-      setTimeLeft(null);
       return;
     }
 
@@ -49,7 +49,10 @@ export default function VotingTimer() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setTimeLeft(null);
+    };
   }, [context, user]);
 
   if (!context || !user || !context.room) return null;
@@ -57,14 +60,21 @@ export default function VotingTimer() {
   const { room, participants } = context;
   const currentParticipant = participants.find((p) => p.uid === user.uid);
   const isModerator = currentParticipant?.role === 'moderator';
+  const isRoomOwner = room.moderatorId === user.uid;
+  const canControlTimer = isModerator || isRoomOwner;
 
-  const startTimer = async (seconds: number) => {
+  const startTimer = async () => {
+    const seconds = parseInt(customSeconds);
+    if (isNaN(seconds) || seconds <= 0 || seconds > MAX_TIMER_SECONDS) {
+      return;
+    }
     const endsAt = Timestamp.fromMillis(Date.now() + seconds * 1000);
     await updateRoom(room.roomId, {
       timerEndsAt: endsAt,
       timerDuration: seconds,
     });
-    setShowPresets(false);
+    setShowInput(false);
+    setCustomSeconds('');
   };
 
   const stopTimer = async () => {
@@ -92,8 +102,8 @@ export default function VotingTimer() {
   const isExpired = timeLeft === 0;
 
   return (
-    <div className="rounded-xl bg-[var(--surface)] p-5 shadow-lg">
-      <div className="flex items-center justify-between gap-4">
+    <div className="rounded-xl bg-[var(--surface)] p-4 shadow-lg">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Clock className="h-6 w-6 text-[var(--text-muted)]" />
           <div>
@@ -114,32 +124,55 @@ export default function VotingTimer() {
           </div>
         </div>
 
-        {isModerator && (
+        {canControlTimer && (
           <div className="flex gap-2">
             {!isActive && !isExpired && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowPresets(!showPresets)}
-                  className="rounded-lg bg-[var(--accent-primary)] p-2 text-[var(--background)] transition-all hover:scale-110"
-                  title="Start timer"
-                >
-                  <Play className="h-5 w-5" />
-                </button>
-
-                {showPresets && (
-                  <div className="absolute top-12 right-0 z-10 flex flex-col gap-2 rounded-xl bg-[var(--background)] p-3 shadow-2xl">
-                    {TIMER_PRESETS.map((seconds) => (
-                      <button
-                        key={seconds}
-                        onClick={() => startTimer(seconds)}
-                        className="rounded-lg bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
-                      >
-                        {formatTime(seconds)}
-                      </button>
-                    ))}
+              <>
+                {showInput ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={customSeconds}
+                      onChange={(e) => setCustomSeconds(e.target.value)}
+                      placeholder="Seconds"
+                      min="1"
+                      max={MAX_TIMER_SECONDS}
+                      className="w-20 rounded-lg border-2 border-[var(--accent-primary)] bg-[var(--background)] px-2 py-1 text-sm text-[var(--text)] focus:outline-none"
+                      autoFocus
+                    />
+                    <button
+                      onClick={startTimer}
+                      disabled={
+                        !customSeconds ||
+                        parseInt(customSeconds) <= 0 ||
+                        parseInt(customSeconds) > MAX_TIMER_SECONDS
+                      }
+                      className="rounded-lg bg-[var(--accent-primary)] p-2 text-[var(--background)] transition-all hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
+                      title="Start timer"
+                    >
+                      <Play className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowInput(false);
+                        setCustomSeconds('');
+                      }}
+                      className="rounded-lg bg-[var(--surface)] p-2 text-[var(--text-muted)] transition-all hover:scale-110"
+                      title="Cancel"
+                    >
+                      ✕
+                    </button>
                   </div>
+                ) : (
+                  <button
+                    onClick={() => setShowInput(true)}
+                    className="rounded-lg bg-[var(--accent-primary)] px-3 py-2 text-sm font-semibold text-[var(--background)] transition-all hover:scale-110"
+                    title="Set timer"
+                  >
+                    Set Timer
+                  </button>
                 )}
-              </div>
+              </>
             )}
 
             {isActive && (

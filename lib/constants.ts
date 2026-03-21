@@ -3,4 +3,5 @@ export const LIMITS = {
   MAX_PARTICIPANTS_PER_ROOM: 10,
   MAX_ROOMS_PER_USER: 1,
   ROOM_CREATION_COOLDOWN_MS: 5000,
+  ROOM_LIFE_DURATION_HOURS: 6, // Rooms expire after 6 hours
 } as const;

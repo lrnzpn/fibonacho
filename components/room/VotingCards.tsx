@@ -60,10 +60,12 @@ export default function VotingCards() {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-center text-xl font-bold text-[var(--text)]">Select Your Estimate</h2>
+    <div className="space-y-4 md:space-y-6">
+      <h2 className="text-center text-lg font-bold text-[var(--text)] md:text-xl">
+        Select Your Estimate
+      </h2>
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-2 md:gap-3">
         {FIBONACCI_VALUES.map((value) => (
           <button
             key={value}

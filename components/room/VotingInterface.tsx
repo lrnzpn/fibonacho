@@ -13,6 +13,8 @@ import VotingCards from './VotingCards';
 import VotingResults from './VotingResults';
 import ReactionsButton from './ReactionsButton';
 import ReactionOverlay from './ReactionOverlay';
+import SessionHistory from './SessionHistory';
+import Footer from '@/components/Footer';
 
 interface VotingInterfaceProps {
   roomId: string;
@@ -47,17 +49,28 @@ function VotingInterfaceContent({ roomId }: VotingInterfaceProps) {
     <div className="flex min-h-screen flex-col">
       <RoomHeader roomId={roomId} />
 
-      <main className="container mx-auto max-w-7xl flex-1 space-y-8 px-6 py-10">
-        <ParticipantsList />
+      <main className="container mx-auto max-w-7xl flex-1 space-y-6 px-4 py-6 md:space-y-8 md:px-6 md:py-10">
+        {/* Topic and Session History */}
+        <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-6">
+          <div className="w-full flex-1">
+            <TopicEditor />
+          </div>
+          <div className="w-full lg:w-auto">
+            <SessionHistory roomId={roomId} />
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <TopicEditor />
+        {/* Participants and Timer Grid */}
+        <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
+          <ParticipantsList />
           <VotingTimer />
         </div>
 
         <VotingCards />
         <VotingResults />
       </main>
+
+      <Footer />
 
       <ReactionsButton onReaction={handleReaction} />
       <ReactionOverlay reactions={reactions} />

@@ -86,3 +86,15 @@ export interface Reaction {
   x?: number;
   y?: number;
 }
+
+export interface HistoryEntry {
+  entryId: string;
+  roomId: string;
+  topic: string;
+  finalEstimate: VoteValue | null;
+  median: number | null;
+  mode: number | null;
+  totalVotes: number;
+  completedAt: Timestamp;
+  roundNumber: number;
+}
