@@ -7,6 +7,7 @@ import { updateRoom, clearVotes, saveHistoryEntry } from '@/lib/firebase/firesto
 import { calculateVoteAnalytics } from '@/lib/utils/analytics';
 import VoteChart from './VoteChart';
 import { nanoid } from 'nanoid';
+import type { VoteValue } from '@/types';
 
 export default function VotingResults() {
   const context = useContext(RoomContext);
@@ -42,7 +43,7 @@ export default function VotingResults() {
       room.roomId,
       entryId,
       room.currentTopic || 'Untitled Topic',
-      analytics.mode, // Use mode as final estimate
+      analytics.mode as VoteValue | null, // Use mode as final estimate
       analytics.median,
       analytics.mode,
       analytics.totalVotes,
