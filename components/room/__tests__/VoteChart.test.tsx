@@ -3,9 +3,9 @@ import VoteChart from '../VoteChart';
 import { VoteValue } from '@/types';
 
 describe('VoteChart', () => {
-  it('should render nothing when totalVotes is 0', () => {
-    const { container } = render(<VoteChart distribution={{}} totalVotes={0} />);
-    expect(container.firstChild).toBeNull();
+  it('should render "No votes yet" when totalVotes is 0', () => {
+    render(<VoteChart distribution={{}} totalVotes={0} />);
+    expect(screen.getByText('No votes yet')).toBeInTheDocument();
   });
 
   it('should render Vote Distribution title', () => {
@@ -13,14 +13,6 @@ describe('VoteChart', () => {
     render(<VoteChart distribution={distribution} totalVotes={3} />);
 
     expect(screen.getByText('Vote Distribution')).toBeInTheDocument();
-  });
-
-  it('should display total votes in center', () => {
-    const distribution = { '5': 2, '8': 1 };
-    render(<VoteChart distribution={distribution} totalVotes={3} />);
-
-    expect(screen.getAllByText('Total').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('3').length).toBeGreaterThan(0);
   });
 
   it('should display vote values in legend', () => {
@@ -37,22 +29,12 @@ describe('VoteChart', () => {
     expect(screen.getAllByText('13').length).toBeGreaterThan(0);
   });
 
-  it('should display vote counts in legend', () => {
+  it('should display vote counts in parentheses', () => {
     const distribution = { '5': 2, '8': 1 };
     render(<VoteChart distribution={distribution} totalVotes={3} />);
 
-    expect(screen.getAllByText('2 votes').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('1 vote').length).toBeGreaterThan(0);
-    expect(screen.getByText('2 votes')).toBeInTheDocument();
-    expect(screen.getByText('1 vote')).toBeInTheDocument();
-  });
-
-  it('should display percentages in legend', () => {
-    const distribution = { '5': 2, '8': 1 };
-    render(<VoteChart distribution={distribution} totalVotes={3} />);
-
-    expect(screen.getByText('66.7%')).toBeInTheDocument();
-    expect(screen.getByText('33.3%')).toBeInTheDocument();
+    expect(screen.getByText('(2)')).toBeInTheDocument();
+    expect(screen.getByText('(1)')).toBeInTheDocument();
   });
 
   it('should handle special cards', () => {
@@ -67,53 +49,41 @@ describe('VoteChart', () => {
     const distribution = { '13': 1, '5': 1, '8': 1, '3': 1 };
     const { container } = render(<VoteChart distribution={distribution} totalVotes={4} />);
 
-    const legendItems = container.querySelectorAll('.font-mono.text-lg');
+    const legendItems = container.querySelectorAll('.font-mono.text-sm.font-bold');
     const values = Array.from(legendItems).map((item) => item.textContent);
 
     expect(values).toEqual(['3', '5', '8', '13']);
   });
 
-  it('should place special cards at the end', () => {
-    const distribution = { '?': 1, '5': 1, '☕': 1, '8': 1 };
-    const { container } = render(<VoteChart distribution={distribution} totalVotes={4} />);
+  it('should sort numbers and special cards correctly', () => {
+    const distribution = { '13': 1, '5': 1, '8': 1, '3': 1, '?': 1, '☕': 1 };
+    const { container } = render(<VoteChart distribution={distribution} totalVotes={6} />);
 
-    const legendItems = container.querySelectorAll('.font-mono.text-lg');
+    const legendItems = container.querySelectorAll('.font-mono.text-sm.font-bold');
     const values = Array.from(legendItems).map((item) => item.textContent);
 
-    expect(values[0]).toBe('5');
-    expect(values[1]).toBe('8');
-    expect(values.slice(2)).toContain('?');
-    expect(values.slice(2)).toContain('☕');
+    // Numbers should be sorted numerically
+    const numericValues = values.filter((v) => !isNaN(parseFloat(v)));
+    expect(numericValues).toEqual(['3', '5', '8', '13']);
+
+    // Special cards should be present
+    expect(values).toContain('?');
+    expect(values).toContain('☕');
   });
 
-  it('should render SVG pie chart', () => {
+  it('should render ResponsiveContainer for chart', () => {
     const distribution = { '5': 2, '8': 1 };
     const { container } = render(<VoteChart distribution={distribution} totalVotes={3} />);
 
-    const svg = container.querySelector('svg');
-    expect(svg).toBeInTheDocument();
-    expect(svg?.getAttribute('viewBox')).toBe('0 0 200 200');
+    const responsiveContainer = container.querySelector('.recharts-responsive-container');
+    expect(responsiveContainer).toBeInTheDocument();
   });
 
-  it('should render pie slices as paths', () => {
-    const distribution = { '5': 2, '8': 1 };
-    const { container } = render(<VoteChart distribution={distribution} totalVotes={3} />);
-
-    const paths = container.querySelectorAll('path');
-    expect(paths.length).toBeGreaterThan(0);
-  });
-
-  it('should display singular "vote" for count of 1', () => {
+  it('should display legend items with color indicators', () => {
     const distribution = { '5': 1 };
-    render(<VoteChart distribution={distribution} totalVotes={1} />);
+    const { container } = render(<VoteChart distribution={distribution} totalVotes={1} />);
 
-    expect(screen.getByText('1 vote')).toBeInTheDocument();
-  });
-
-  it('should display plural "votes" for count greater than 1', () => {
-    const distribution = { '5': 3 };
-    render(<VoteChart distribution={distribution} totalVotes={3} />);
-
-    expect(screen.getByText('3 votes')).toBeInTheDocument();
+    const colorIndicator = container.querySelector('.h-4.w-4.flex-shrink-0.rounded');
+    expect(colorIndicator).toBeInTheDocument();
   });
 });

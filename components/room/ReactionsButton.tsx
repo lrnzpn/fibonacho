@@ -15,18 +15,17 @@ export default function ReactionsButton({ onReaction }: ReactionsButtonProps) {
 
   const handleReaction = (reaction: ReactionType) => {
     onReaction(reaction);
-    setIsOpen(false);
   };
 
   return (
     <div className="fixed right-8 bottom-8 z-50">
       {isOpen && (
-        <div className="mb-3 flex flex-col items-center gap-2 rounded-2xl bg-[var(--surface)] shadow-2xl">
+        <div className="mb-3 flex flex-col items-center gap-2 rounded-2xl bg-[var(--surface)] p-2 shadow-2xl">
           {REACTIONS.map((reaction) => (
             <button
               key={reaction}
               onClick={() => handleReaction(reaction)}
-              className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl transition-all hover:scale-125 hover:bg-[var(--background)]"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-2xl transition-all hover:scale-125 hover:bg-[var(--background)]"
               title={`Send ${reaction}`}
             >
               {reaction}

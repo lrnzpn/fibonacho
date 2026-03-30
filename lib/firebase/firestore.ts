@@ -8,6 +8,7 @@ import {
   deleteDoc,
   query,
   orderBy,
+  limit,
   onSnapshot,
   serverTimestamp,
   Timestamp,
@@ -201,7 +202,7 @@ export const addReaction = async (
 };
 
 export const subscribeToReactions = (roomId: string, callback: (reactions: Reaction[]) => void) => {
-  const q = query(reactionsCollection(roomId), orderBy('timestamp', 'desc'));
+  const q = query(reactionsCollection(roomId), orderBy('timestamp', 'desc'), limit(50));
   return onSnapshot(q, (snapshot) => {
     const reactions = snapshot.docs.map((doc) => doc.data() as Reaction);
     callback(reactions);

@@ -8,12 +8,12 @@ import { ReactionType } from '@/types';
 import RoomHeader from './RoomHeader';
 import TopicEditor from './TopicEditor';
 import VotingTimer from './VotingTimer';
+import SessionHistory from './SessionHistory';
 import ParticipantsList from './ParticipantsList';
 import VotingCards from './VotingCards';
 import VotingResults from './VotingResults';
 import ReactionsButton from './ReactionsButton';
 import ReactionOverlay from './ReactionOverlay';
-import SessionHistory from './SessionHistory';
 import Footer from '@/components/Footer';
 
 interface VotingInterfaceProps {
@@ -50,23 +50,28 @@ function VotingInterfaceContent({ roomId }: VotingInterfaceProps) {
       <RoomHeader roomId={roomId} />
 
       <main className="container mx-auto max-w-7xl flex-1 space-y-6 px-4 py-6 md:space-y-8 md:px-6 md:py-10">
-        {/* Topic and Session History */}
-        <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-6">
-          <div className="w-full flex-1">
+        {/* Topic/Timer and History - Side by Side */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-6">
+          <div className="flex w-full flex-col gap-4 lg:basis-7/12">
             <TopicEditor />
+            <VotingTimer />
           </div>
-          <div className="w-full lg:w-auto">
+          <div className="w-full lg:basis-5/12">
             <SessionHistory roomId={roomId} />
           </div>
         </div>
 
-        {/* Participants and Timer Grid */}
-        <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-2">
+        {/* Participants - Full Width, Centered */}
+        <div className="mx-auto w-full max-w-5xl">
           <ParticipantsList />
-          <VotingTimer />
         </div>
 
-        <VotingCards />
+        {/* Voting Cards - Centered */}
+        <div className="mx-auto w-full max-w-4xl">
+          <VotingCards />
+        </div>
+
+        {/* Results */}
         <VotingResults />
       </main>
 

@@ -14,6 +14,17 @@ import {
 
 jest.mock('@/lib/firebase/firestore');
 
+jest.mock('firebase/firestore', () => ({
+  ...jest.requireActual('firebase/firestore'),
+  deleteField: jest.fn(() => 'DELETE_FIELD_SENTINEL'),
+}));
+
+jest.mock('@/lib/firebase/config', () => ({
+  app: {},
+  auth: {},
+  db: {},
+}));
+
 jest.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: () => ({
@@ -151,6 +162,10 @@ describe('VotingTimer', () => {
       callback(roomWithoutTimer);
       return () => {};
     });
+    mockSubscribeToParticipants.mockImplementation((roomId, callback) => {
+      callback([mockModerator]);
+      return () => {};
+    });
 
     render(
       <AuthProvider>
@@ -163,7 +178,7 @@ describe('VotingTimer', () => {
     const setTimerButton = screen.getByText('Set Timer');
     fireEvent.click(setTimerButton);
 
-    expect(screen.getByPlaceholderText('Seconds')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Sec')).toBeInTheDocument();
   });
 
   it('should display active timer countdown', () => {
@@ -227,6 +242,10 @@ describe('VotingTimer', () => {
       callback(roomWithTimer);
       return () => {};
     });
+    mockSubscribeToParticipants.mockImplementation((roomId, callback) => {
+      callback([mockModerator]);
+      return () => {};
+    });
 
     render(
       <AuthProvider>
@@ -241,8 +260,8 @@ describe('VotingTimer', () => {
 
     await waitFor(() => {
       expect(mockUpdateRoom).toHaveBeenCalledWith('test-room', {
-        timerEndsAt: undefined,
-        timerDuration: undefined,
+        timerEndsAt: 'DELETE_FIELD_SENTINEL',
+        timerDuration: 'DELETE_FIELD_SENTINEL',
       });
     });
   });

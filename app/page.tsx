@@ -91,6 +91,7 @@ export default function Home() {
                 placeholder="ENTER ROOM CODE"
                 className="w-full rounded-2xl border-2 border-transparent bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] text-[var(--text)] uppercase transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
                 maxLength={8}
+                autoComplete="off"
               />
               <button
                 type="submit"

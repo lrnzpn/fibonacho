@@ -4,8 +4,8 @@ import { useState, useEffect, useContext } from 'react';
 import { RoomContext } from '@/contexts/RoomContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateRoom } from '@/lib/firebase/firestore';
-import { Timestamp } from 'firebase/firestore';
-import { Clock, Play, Pause, RotateCcw } from 'lucide-react';
+import { Timestamp, deleteField } from 'firebase/firestore';
+import { Clock, Play, Pause, RotateCcw, Eye } from 'lucide-react';
 
 const MAX_TIMER_SECONDS = 120; // 2 minutes maximum
 
@@ -29,8 +29,10 @@ export default function VotingTimer() {
 
     const handleTimerEnd = async () => {
       await updateRoom(room.roomId, {
-        timerEndsAt: undefined,
-        timerDuration: undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timerEndsAt: deleteField() as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timerDuration: deleteField() as any,
       });
     };
 
@@ -79,8 +81,10 @@ export default function VotingTimer() {
 
   const stopTimer = async () => {
     await updateRoom(room.roomId, {
-      timerEndsAt: undefined,
-      timerDuration: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timerEndsAt: deleteField() as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timerDuration: deleteField() as any,
     });
   };
 
@@ -89,6 +93,13 @@ export default function VotingTimer() {
     const endsAt = Timestamp.fromMillis(Date.now() + room.timerDuration * 1000);
     await updateRoom(room.roomId, {
       timerEndsAt: endsAt,
+    });
+  };
+
+  const toggleReveal = async () => {
+    const newState = room.state === 'revealed' ? 'voting' : 'revealed';
+    await updateRoom(room.roomId, {
+      state: newState,
     });
   };
 
@@ -102,17 +113,17 @@ export default function VotingTimer() {
   const isExpired = timeLeft === 0;
 
   return (
-    <div className="rounded-xl bg-[var(--surface)] p-4 shadow-lg">
+    <div className="flex h-full flex-col rounded-xl bg-[var(--surface)] p-4 shadow-lg">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Clock className="h-6 w-6 text-[var(--text-muted)]" />
+          <Clock className="h-5 w-5 text-[var(--text-muted)]" />
           <div>
-            <h3 className="text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+            <h3 className="mb-1 text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
               Timer
             </h3>
             {isActive || isExpired ? (
               <p
-                className={`font-mono text-xl font-bold ${
+                className={`font-mono text-lg font-bold ${
                   isExpired ? 'text-red-500' : 'text-[var(--accent-primary)]'
                 }`}
               >
@@ -134,10 +145,11 @@ export default function VotingTimer() {
                       type="number"
                       value={customSeconds}
                       onChange={(e) => setCustomSeconds(e.target.value)}
-                      placeholder="Seconds"
+                      placeholder="Sec"
                       min="1"
                       max={MAX_TIMER_SECONDS}
-                      className="w-20 rounded-lg border-2 border-[var(--accent-primary)] bg-[var(--background)] px-2 py-1 text-sm text-[var(--text)] focus:outline-none"
+                      className="w-16 [appearance:textfield] rounded-lg border-2 border-[var(--accent-primary)] bg-[var(--background)] px-2 py-1 text-sm text-[var(--text)] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      autoComplete="off"
                       autoFocus
                     />
                     <button
@@ -205,6 +217,22 @@ export default function VotingTimer() {
           </div>
         )}
       </div>
+
+      {canControlTimer && (
+        <div className="mt-4 border-t border-[var(--background)] pt-4">
+          <button
+            onClick={toggleReveal}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105 ${
+              room.state === 'revealed'
+                ? 'hover:bg-opacity-80 bg-[var(--background)] text-[var(--text)]'
+                : 'bg-[var(--accent-secondary)] text-[var(--background)]'
+            }`}
+          >
+            <Eye className="h-4 w-4" />
+            {room.state === 'revealed' ? 'Hide Votes' : 'Reveal Votes'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

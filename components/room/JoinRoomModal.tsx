@@ -104,6 +104,7 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
               placeholder="Enter your name"
               className="w-full rounded-2xl border-2 border-transparent bg-[var(--background)] px-5 py-4 text-lg text-[var(--text)] transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               maxLength={LIMITS.MAX_DISPLAY_NAME_LENGTH}
+              autoComplete="off"
               autoFocus
             />
           </div>

@@ -11,7 +11,6 @@ interface SessionHistoryProps {
 
 export default function SessionHistory({ roomId }: SessionHistoryProps) {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -20,10 +19,8 @@ export default function SessionHistory({ roomId }: SessionHistoryProps) {
       setHistory(entries);
     };
 
-    if (isOpen) {
-      loadHistory();
-    }
-  }, [roomId, isOpen]);
+    loadHistory();
+  }, [roomId]);
 
   const formatHistoryAsText = () => {
     if (history.length === 0) return 'No estimation history yet.';
@@ -59,57 +56,37 @@ export default function SessionHistory({ roomId }: SessionHistoryProps) {
     URL.revokeObjectURL(url);
   };
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-[var(--surface)] px-3 py-2 text-sm font-semibold whitespace-nowrap text-[var(--text)] transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
-        title="View session history"
-      >
-        <History className="h-4 w-4" />
-        <span>History</span>
-      </button>
-    );
-  }
-
   return (
-    <div className="rounded-xl bg-[var(--surface)] p-4 shadow-lg md:p-6">
+    <div className="flex h-full flex-col rounded-xl bg-[var(--surface)] p-4 shadow-lg">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-[var(--text)] md:text-xl">
-          <History className="h-5 w-5" />
+        <h3 className="flex items-center gap-2 text-base font-bold text-[var(--text)]">
+          <History className="h-4 w-4" />
           Session History
         </h3>
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110 hover:text-[var(--accent-primary)]"
+            className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-105 hover:text-[var(--accent-primary)]"
             title="Copy to clipboard"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </button>
           <button
             onClick={handleDownload}
-            className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110 hover:text-[var(--accent-primary)]"
+            className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-105 hover:text-[var(--accent-primary)]"
             title="Download as text file"
           >
             <Download className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110"
-            title="Close"
-          >
-            ✕
           </button>
         </div>
       </div>
 
       {history.length === 0 ? (
-        <p className="py-8 text-center text-[var(--text-muted)]">
+        <p className="py-8 text-center text-sm text-[var(--text-muted)]">
           No estimation history yet. Complete a round to see it here!
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="flex-1 space-y-3 overflow-y-auto">
           {history.map((entry) => (
             <div
               key={entry.entryId}

@@ -41,10 +41,10 @@ export default function TopicEditor() {
   };
 
   return (
-    <div className="rounded-xl bg-[var(--surface)] p-5 shadow-lg">
+    <div className="rounded-xl bg-[var(--surface)] p-4 shadow-lg">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="mb-2 text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
+          <h3 className="mb-3 text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
             Current Topic
           </h3>
           {isEditing ? (
@@ -58,7 +58,9 @@ export default function TopicEditor() {
               maxLength={500}
             />
           ) : (
-            <p className="text-base leading-relaxed text-[var(--text)]">{currentTopic}</p>
+            <p className="min-h-[2.5rem] text-base leading-relaxed text-[var(--text)]">
+              {currentTopic}
+            </p>
           )}
         </div>
 

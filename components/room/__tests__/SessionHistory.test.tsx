@@ -50,32 +50,17 @@ describe('SessionHistory', () => {
     });
   });
 
-  it('should render History button when closed', () => {
+  it('should render Session History title', () => {
+    mockGetHistory.mockResolvedValue([]);
     render(<SessionHistory roomId="test-room" />);
 
-    expect(screen.getByText('History')).toBeInTheDocument();
-  });
-
-  it('should open history panel when button is clicked', async () => {
-    mockGetHistory.mockResolvedValue(mockHistory);
-
-    render(<SessionHistory roomId="test-room" />);
-
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Session History')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Session History')).toBeInTheDocument();
   });
 
   it('should display history entries', async () => {
     mockGetHistory.mockResolvedValue(mockHistory);
 
     render(<SessionHistory roomId="test-room" />);
-
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
 
     await waitFor(() => {
       expect(screen.getByText('User Authentication')).toBeInTheDocument();
@@ -88,9 +73,6 @@ describe('SessionHistory', () => {
 
     render(<SessionHistory roomId="test-room" />);
 
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
-
     await waitFor(() => {
       expect(screen.getByText('5')).toBeInTheDocument();
       expect(screen.getByText('8')).toBeInTheDocument();
@@ -101,9 +83,6 @@ describe('SessionHistory', () => {
     mockGetHistory.mockResolvedValue(mockHistory);
 
     render(<SessionHistory roomId="test-room" />);
-
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
 
     await waitFor(() => {
       expect(screen.getByText('#1')).toBeInTheDocument();
@@ -116,9 +95,6 @@ describe('SessionHistory', () => {
 
     render(<SessionHistory roomId="test-room" />);
 
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
-
     await waitFor(() => {
       expect(screen.getByText(/No estimation history yet/i)).toBeInTheDocument();
     });
@@ -128,9 +104,6 @@ describe('SessionHistory', () => {
     mockGetHistory.mockResolvedValue(mockHistory);
 
     render(<SessionHistory roomId="test-room" />);
-
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
 
     await waitFor(() => {
       expect(screen.getByTitle('Copy to clipboard')).toBeInTheDocument();
@@ -144,33 +117,20 @@ describe('SessionHistory', () => {
     });
   });
 
-  it('should close history panel when close button is clicked', async () => {
+  it('should show download button', async () => {
     mockGetHistory.mockResolvedValue(mockHistory);
 
     render(<SessionHistory roomId="test-room" />);
 
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
-
     await waitFor(() => {
-      expect(screen.getByText('Session History')).toBeInTheDocument();
-    });
-
-    const closeButton = screen.getByTitle('Close');
-    fireEvent.click(closeButton);
-
-    await waitFor(() => {
-      expect(screen.queryByText('Session History')).not.toBeInTheDocument();
+      expect(screen.getByTitle('Download as text file')).toBeInTheDocument();
     });
   });
 
-  it('should load history when opened', async () => {
+  it('should load history on mount', async () => {
     mockGetHistory.mockResolvedValue(mockHistory);
 
     render(<SessionHistory roomId="test-room" />);
-
-    const historyButton = screen.getByText('History');
-    fireEvent.click(historyButton);
 
     await waitFor(() => {
       expect(mockGetHistory).toHaveBeenCalledWith('test-room');

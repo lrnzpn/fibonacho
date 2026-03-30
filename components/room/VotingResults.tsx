@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { RoomContext } from '@/contexts/RoomContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateRoom, clearVotes, saveHistoryEntry } from '@/lib/firebase/firestore';
+import { deleteField } from 'firebase/firestore';
 import { calculateVoteAnalytics } from '@/lib/utils/analytics';
 import VoteChart from './VoteChart';
 import { nanoid } from 'nanoid';
@@ -50,10 +51,18 @@ export default function VotingResults() {
       room.currentRound
     );
 
+    // Clear votes
     await clearVotes(room.roomId);
+
+    // Reset room state: clear topic, clear timer, increment round, return to voting
     await updateRoom(room.roomId, {
       state: 'voting',
       currentRound: room.currentRound + 1,
+      currentTopic: '',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timerEndsAt: deleteField() as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timerDuration: deleteField() as any,
     });
   };
 
