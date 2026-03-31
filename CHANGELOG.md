@@ -1,5 +1,11 @@
 # fibonacho
 
+## 0.1.3
+
+### Patch Changes
+
+- chore: UI Updates, unit tests updates and fixes, lint fixes and rearrange files in appropriate directories"
+
 ## 0.1.2
 
 ### Patch Changes

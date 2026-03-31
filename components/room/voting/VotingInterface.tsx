@@ -5,15 +5,15 @@ import { RoomProvider, RoomContext } from '@/contexts/RoomContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { addReaction } from '@/lib/firebase/firestore';
 import { ReactionType } from '@/types';
-import RoomHeader from './RoomHeader';
-import TopicEditor from './TopicEditor';
-import VotingTimer from './VotingTimer';
-import SessionHistory from './SessionHistory';
-import ParticipantsList from './ParticipantsList';
-import VotingCards from './VotingCards';
-import VotingResults from './VotingResults';
-import ReactionsButton from './ReactionsButton';
-import ReactionOverlay from './ReactionOverlay';
+import RoomHeader from '@/components/room/participants/RoomHeader';
+import TopicEditor from '@/components/room/session/TopicEditor';
+import VotingTimer from '@/components/room/voting/VotingTimer';
+import SessionHistory from '@/components/room/session/SessionHistory';
+import ParticipantsList from '@/components/room/participants/ParticipantsList';
+import VotingCards from '@/components/room/voting/VotingCards';
+import VotingResults from '@/components/room/voting/VotingResults';
+import ReactionsButton from '@/components/room/reactions/ReactionsButton';
+import ReactionOverlay from '@/components/room/reactions/ReactionOverlay';
 import Footer from '@/components/Footer';
 
 interface VotingInterfaceProps {

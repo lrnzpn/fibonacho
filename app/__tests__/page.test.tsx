@@ -28,14 +28,14 @@ describe('Home Page', () => {
   it('should render Create New Room button', () => {
     render(<Home />);
 
-    const createButton = screen.getByRole('button', { name: /create new room/i });
+    const createButton = screen.getByText('Create New Room');
     expect(createButton).toBeInTheDocument();
   });
 
   it('should navigate to new room when Create New Room is clicked', () => {
     render(<Home />);
 
-    const createButton = screen.getByRole('button', { name: /create new room/i });
+    const createButton = screen.getByText('Create New Room');
     fireEvent.click(createButton);
 
     expect(mockPush).toHaveBeenCalledTimes(1);
@@ -52,14 +52,14 @@ describe('Home Page', () => {
   it('should render Join Room button', () => {
     render(<Home />);
 
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
     expect(joinButton).toBeInTheDocument();
   });
 
   it('should disable Join Room button when input is empty', () => {
     render(<Home />);
 
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
     expect(joinButton).toBeDisabled();
   });
 
@@ -67,7 +67,7 @@ describe('Home Page', () => {
     render(<Home />);
 
     const input = screen.getByPlaceholderText(/enter room code/i);
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
 
     fireEvent.change(input, { target: { value: 'ABC12345' } });
 
@@ -78,7 +78,7 @@ describe('Home Page', () => {
     render(<Home />);
 
     const input = screen.getByPlaceholderText(/enter room code/i);
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
 
     fireEvent.change(input, { target: { value: 'ABC12345' } });
     fireEvent.click(joinButton);
@@ -90,7 +90,7 @@ describe('Home Page', () => {
     render(<Home />);
 
     const input = screen.getByPlaceholderText(/enter room code/i);
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
 
     fireEvent.change(input, { target: { value: '  ABC12345  ' } });
     fireEvent.click(joinButton);
@@ -101,7 +101,7 @@ describe('Home Page', () => {
   it('should not navigate when Join Room is clicked with empty input', () => {
     render(<Home />);
 
-    const joinButton = screen.getByRole('button', { name: /join room/i });
+    const joinButton = screen.getByText('Join Room');
     fireEvent.click(joinButton);
 
     expect(mockPush).not.toHaveBeenCalled();

@@ -33,14 +33,15 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="rounded-lg bg-[var(--surface)] p-2 transition-all hover:scale-110 hover:bg-[var(--background)]"
+      className="rounded-lg bg-[var(--surface)] p-2 transition-all hover:scale-110 hover:bg-[var(--background)] focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      aria-pressed={theme === 'light'}
     >
       {theme === 'dark' ? (
-        <Sun className="h-6 w-6 text-[var(--accent-primary)]" />
+        <Sun className="h-6 w-6 text-[var(--accent-primary)]" aria-hidden="true" />
       ) : (
-        <Moon className="h-6 w-6 text-[var(--accent-primary)]" />
+        <Moon className="h-6 w-6 text-[var(--accent-primary)]" aria-hidden="true" />
       )}
     </button>
   );

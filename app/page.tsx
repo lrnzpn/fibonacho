@@ -42,13 +42,16 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <main className="flex flex-1 items-center justify-center p-4 md:p-6">
+      <main className="flex flex-1 items-center justify-center p-4 md:p-6" role="main">
         <div className="w-full max-w-2xl space-y-6">
           <div className="space-y-2 text-center">
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center" aria-hidden="true">
               <NachoIcon className="h-20 w-20 md:h-24 md:w-24" animate={true} />
             </div>
-            <h1 className="text-5xl leading-none font-bold tracking-tight md:text-7xl">
+            <h1
+              className="text-5xl leading-none font-bold tracking-tight md:text-7xl"
+              id="main-heading"
+            >
               <span className="text-[var(--accent-primary)]">Fibo</span>
               <span className="text-[var(--text)]">nacho</span>
             </h1>
@@ -59,20 +62,25 @@ export default function Home() {
 
           <div className="space-y-2">
             {error && (
-              <div className="bg-opacity-10 rounded-2xl border-2 border-red-500 bg-red-500 p-4">
+              <div
+                className="bg-opacity-10 rounded-2xl border-2 border-red-500 bg-red-500 p-4"
+                role="alert"
+                aria-live="polite"
+              >
                 <p className="text-center text-sm font-medium text-red-500">{error}</p>
               </div>
             )}
             <div>
               <button
                 onClick={handleCreateRoom}
-                className="w-full rounded-2xl bg-[var(--accent-primary)] px-8 py-4 text-xl font-bold text-[var(--background)] transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                className="w-full rounded-2xl bg-[var(--accent-primary)] px-8 py-4 text-xl font-bold text-[var(--background)] transition-all hover:scale-[1.02] hover:opacity-90 focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none active:scale-[0.98]"
+                aria-label="Create a new planning poker room"
               >
                 Create New Room
               </button>
             </div>
 
-            <div className="relative py-3">
+            <div className="relative py-3" aria-hidden="true">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t-2 border-[var(--surface)]"></div>
               </div>
@@ -83,8 +91,12 @@ export default function Home() {
               </div>
             </div>
 
-            <form onSubmit={handleJoinRoom} className="space-y-2">
+            <form onSubmit={handleJoinRoom} className="space-y-2" aria-label="Join existing room">
+              <label htmlFor="room-code-input" className="sr-only">
+                Enter room code
+              </label>
               <input
+                id="room-code-input"
                 type="text"
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value)}
@@ -92,14 +104,19 @@ export default function Home() {
                 className="w-full rounded-2xl border-2 border-transparent bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] text-[var(--text)] uppercase transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
                 maxLength={8}
                 autoComplete="off"
+                aria-describedby="room-code-help"
               />
               <button
                 type="submit"
                 disabled={!roomId.trim()}
-                className="w-full rounded-2xl bg-[var(--surface)] px-8 py-4 text-xl font-bold text-[var(--text)] transition-all hover:scale-[1.02] hover:bg-[var(--accent-secondary)] hover:text-[var(--background)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text)]"
+                className="w-full rounded-2xl bg-[var(--surface)] px-8 py-4 text-xl font-bold text-[var(--text)] transition-all hover:scale-[1.02] hover:bg-[var(--accent-secondary)] hover:text-[var(--background)] focus:ring-2 focus:ring-[var(--accent-secondary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text)]"
+                aria-label="Join room with entered code"
               >
                 Join Room
               </button>
+              <p id="room-code-help" className="sr-only">
+                Enter an 8-character room code to join an existing planning poker session
+              </p>
             </form>
           </div>
 
