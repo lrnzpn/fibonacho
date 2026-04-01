@@ -1,7 +1,9 @@
+import { APP_CONFIG } from '@/config';
+
 export const LIMITS = {
-  MAX_DISPLAY_NAME_LENGTH: 30,
-  MAX_PARTICIPANTS_PER_ROOM: 10,
-  MAX_ROOMS_PER_USER: 1,
-  ROOM_CREATION_COOLDOWN_MS: 5000,
-  ROOM_LIFE_DURATION_HOURS: 6, // Rooms expire after 6 hours
+  MAX_DISPLAY_NAME_LENGTH: APP_CONFIG.limits.maxDisplayNameLength,
+  MAX_PARTICIPANTS_PER_ROOM: APP_CONFIG.limits.maxParticipantsPerRoom,
+  MAX_ROOMS_PER_USER: APP_CONFIG.limits.maxRoomsPerUser,
+  ROOM_CREATION_COOLDOWN_MS: APP_CONFIG.limits.roomCreationCooldownMs,
+  ROOM_LIFE_DURATION_HOURS: APP_CONFIG.limits.roomLifeDurationHours,
 } as const;

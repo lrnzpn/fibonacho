@@ -13,7 +13,7 @@ export default function RoomNotFound() {
 
         <h1 className="mb-4 text-5xl font-bold text-[var(--text)]">Room Not Found</h1>
 
-        <h2 className="mb-4 text-2xl font-bold text-[var(--text)]">That&apos;s nacho room!</h2>
+        <h2 className="mb-4 text-2xl font-bold text-yellow-500">That&apos;s nacho room!</h2>
 
         <p className="mb-8 text-lg text-[var(--text-muted)]">
           This room doesn&apos;t exist or may have been deleted. Want to create your own planning
@@ -23,7 +23,7 @@ export default function RoomNotFound() {
         <div className="flex flex-col gap-4 sm:flex-row">
           <Link
             href="/"
-            className="rounded-xl bg-[var(--accent-primary)] px-6 py-3 font-semibold text-[var(--background)] transition-all hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none"
+            className="flex items-center rounded-xl bg-[var(--accent-primary)] px-6 py-3 font-semibold text-[var(--background)] transition-all hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none"
             aria-label="Create a new room"
           >
             Create New Room

@@ -7,8 +7,9 @@ import { updateRoom, getHistory } from '@/lib/firebase/firestore';
 import { Timestamp, deleteField } from 'firebase/firestore';
 import { Clock, Play, Pause, RotateCcw, History, Download, Copy, Check } from 'lucide-react';
 import { HistoryEntry } from '@/types';
+import { APP_CONFIG } from '@/config';
 
-const MAX_TIMER_SECONDS = 120;
+const MAX_TIMER_SECONDS = APP_CONFIG.timer.maxSeconds;
 
 interface SessionControlsProps {
   roomId: string;
@@ -98,10 +99,8 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
 
   const stopTimer = async () => {
     await updateRoom(room.roomId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerEndsAt: deleteField() as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerDuration: deleteField() as any,
+      timerEndsAt: deleteField(),
+      timerDuration: deleteField(),
     });
   };
 

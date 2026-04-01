@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, notFound } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import JoinRoomModal from '@/components/room/modals/JoinRoomModal';
 import VotingInterface from '@/components/room/voting/VotingInterface';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,14 +11,25 @@ export default function RoomPage() {
   const params = useParams();
   const roomId = params.roomId as string;
   const { user, loading: authLoading } = useAuth();
-  const { room, loading: roomLoading, error } = useRoom(roomId);
+  const { room, loading: roomLoading } = useRoom(roomId);
   const [hasJoined, setHasJoined] = useState(false);
+  const roomRef = useRef(room);
 
   useEffect(() => {
-    if (error || (!roomLoading && !room)) {
-      notFound();
+    roomRef.current = room;
+  }, [room]);
+
+  useEffect(() => {
+    if (!roomLoading && !room) {
+      const timeout = setTimeout(() => {
+        if (!roomRef.current) {
+          notFound();
+        }
+      }, 2000);
+
+      return () => clearTimeout(timeout);
     }
-  }, [error, room, roomLoading]);
+  }, [room, roomLoading]);
 
   if (authLoading || roomLoading) {
     return (

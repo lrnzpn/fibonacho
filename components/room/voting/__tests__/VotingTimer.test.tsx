@@ -114,10 +114,14 @@ describe('VotingTimer', () => {
     expect(screen.getByText('Not started')).toBeInTheDocument();
   });
 
-  it('should show Set Timer button for moderator', () => {
+  it('should show +30s button for moderator', () => {
     const roomWithoutTimer = { ...mockRoom, timerEndsAt: undefined };
     mockSubscribeToRoom.mockImplementation((roomId, callback) => {
       callback(roomWithoutTimer);
+      return () => {};
+    });
+    mockSubscribeToParticipants.mockImplementation((roomId, callback) => {
+      callback([mockModerator]);
       return () => {};
     });
 
@@ -129,10 +133,10 @@ describe('VotingTimer', () => {
       </AuthProvider>
     );
 
-    expect(screen.getByText('Set Timer')).toBeInTheDocument();
+    expect(screen.getByTitle('Add 30 seconds')).toBeInTheDocument();
   });
 
-  it('should not show Set Timer button for non-moderator', () => {
+  it('should not show timer controls for non-moderator', () => {
     const roomWithoutTimer = { ...mockRoom, timerEndsAt: undefined, moderatorId: 'otherUser' };
     const nonModeratorParticipant = { ...mockModerator, role: 'voter' as const };
 
@@ -153,10 +157,11 @@ describe('VotingTimer', () => {
       </AuthProvider>
     );
 
-    expect(screen.queryByText('Set Timer')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Add 30 seconds')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Reveal Votes')).not.toBeInTheDocument();
   });
 
-  it('should show input field when Set Timer is clicked', () => {
+  it('should show start button when time is added', () => {
     const roomWithoutTimer = { ...mockRoom, timerEndsAt: undefined };
     mockSubscribeToRoom.mockImplementation((roomId, callback) => {
       callback(roomWithoutTimer);
@@ -175,10 +180,11 @@ describe('VotingTimer', () => {
       </AuthProvider>
     );
 
-    const setTimerButton = screen.getByText('Set Timer');
-    fireEvent.click(setTimerButton);
+    const addTimeButton = screen.getByTitle('Add 30 seconds');
+    fireEvent.click(addTimeButton);
 
-    expect(screen.getByPlaceholderText('Sec')).toBeInTheDocument();
+    expect(screen.getByTitle('Start timer')).toBeInTheDocument();
+    expect(screen.getByText('30s')).toBeInTheDocument();
   });
 
   it('should display active timer countdown', () => {

@@ -7,6 +7,7 @@ import { updateRoom, clearVotes, saveHistoryEntry } from '@/lib/firebase/firesto
 import { deleteField } from 'firebase/firestore';
 import { calculateVoteAnalytics } from '@/lib/utils/analytics';
 import VoteChart from './VoteChart';
+import EnhancedStatistics from './EnhancedStatistics';
 import { nanoid } from 'nanoid';
 import type { VoteValue } from '@/types';
 
@@ -59,10 +60,8 @@ export default function VotingResults() {
       state: 'voting',
       currentRound: room.currentRound + 1,
       currentTopic: '',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerEndsAt: deleteField() as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerDuration: deleteField() as any,
+      timerEndsAt: deleteField(),
+      timerDuration: deleteField(),
     });
   };
 
@@ -114,7 +113,9 @@ export default function VotingResults() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
+      <EnhancedStatistics analytics={analytics} />
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4">
         <div className="rounded-xl bg-[var(--surface)] p-6 text-center shadow-lg">
           <p className="mb-3 text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
             Median
@@ -130,15 +131,6 @@ export default function VotingResults() {
           </p>
           <p className="font-mono text-4xl font-bold text-[var(--accent-primary)]">
             {analytics.mode ?? '-'}
-          </p>
-        </div>
-
-        <div className="rounded-xl bg-[var(--surface)] p-6 text-center shadow-lg">
-          <p className="mb-3 text-sm font-semibold tracking-wide text-[var(--text-muted)] uppercase">
-            Total Votes
-          </p>
-          <p className="font-mono text-4xl font-bold text-[var(--accent-primary)]">
-            {analytics.totalVotes}
           </p>
         </div>
       </div>

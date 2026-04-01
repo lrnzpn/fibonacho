@@ -15,6 +15,8 @@ import {
   DocumentReference,
   CollectionReference,
   QueryDocumentSnapshot,
+  type FieldValue,
+  type UpdateData,
 } from 'firebase/firestore';
 import { db } from './config';
 import type {
@@ -73,11 +75,17 @@ export const getRoom = async (roomId: string): Promise<Room | null> => {
   return roomSnapshot.exists() ? roomSnapshot.data() : null;
 };
 
-export const updateRoom = async (roomId: string, data: Partial<Room>) => {
+// Type that allows FieldValue for deletable fields
+type RoomUpdate = Partial<Omit<Room, 'timerEndsAt' | 'timerDuration'>> & {
+  timerEndsAt?: Timestamp | FieldValue;
+  timerDuration?: number | FieldValue;
+};
+
+export const updateRoom = async (roomId: string, data: RoomUpdate) => {
   await updateDoc(roomDoc(roomId), {
     ...data,
     lastActivity: serverTimestamp(),
-  });
+  } as UpdateData<Room>);
 };
 
 export const deleteRoom = async (roomId: string) => {

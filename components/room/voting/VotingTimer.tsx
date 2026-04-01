@@ -5,21 +5,23 @@ import { RoomContext } from '@/contexts/RoomContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateRoom } from '@/lib/firebase/firestore';
 import { Timestamp, deleteField } from 'firebase/firestore';
-import { Clock, Play, Pause, RotateCcw, Eye } from 'lucide-react';
+import { Clock, Play, Pause, Square, RotateCcw, Eye, AlertCircle } from 'lucide-react';
+import { APP_CONFIG } from '@/config';
 
-const MAX_TIMER_SECONDS = 120; // 2 minutes maximum
+const MAX_TIMER_SECONDS = APP_CONFIG.timer.maxSeconds;
 
 export default function VotingTimer() {
   const context = useContext(RoomContext);
   const { user } = useAuth();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [showInput, setShowInput] = useState(false);
-  const [customSeconds, setCustomSeconds] = useState<string>('');
+  const [pendingSeconds, setPendingSeconds] = useState<number>(0);
+  const [showMaxWarning, setShowMaxWarning] = useState(false);
+  const [pausedTime, setPausedTime] = useState<number | null>(null);
 
   useEffect(() => {
     if (!context || !user || !context.room) return;
 
-    const { room } = context;
+    const room = context.room;
     const currentParticipant = context.participants.find((p) => p.uid === user.uid);
     const isModerator = currentParticipant?.role === 'moderator';
 
@@ -29,10 +31,8 @@ export default function VotingTimer() {
 
     const handleTimerEnd = async () => {
       await updateRoom(room.roomId, {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timerEndsAt: deleteField() as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timerDuration: deleteField() as any,
+        timerEndsAt: deleteField(),
+        timerDuration: deleteField(),
       });
     };
 
@@ -59,32 +59,77 @@ export default function VotingTimer() {
 
   if (!context || !user || !context.room) return null;
 
-  const { room, participants } = context;
+  const { room, participants, votes } = context;
   const currentParticipant = participants.find((p) => p.uid === user.uid);
   const isModerator = currentParticipant?.role === 'moderator';
   const isRoomOwner = room.moderatorId === user.uid;
   const canControlTimer = isModerator || isRoomOwner;
+  const hasVotes = votes.length > 0;
 
   const startTimer = async () => {
-    const seconds = parseInt(customSeconds);
-    if (isNaN(seconds) || seconds <= 0 || seconds > MAX_TIMER_SECONDS) {
+    if (pendingSeconds <= 0 || pendingSeconds > MAX_TIMER_SECONDS) {
       return;
     }
-    const endsAt = Timestamp.fromMillis(Date.now() + seconds * 1000);
+    const endsAt = Timestamp.fromMillis(Date.now() + pendingSeconds * 1000);
     await updateRoom(room.roomId, {
       timerEndsAt: endsAt,
-      timerDuration: seconds,
+      timerDuration: pendingSeconds,
     });
-    setShowInput(false);
-    setCustomSeconds('');
+    setPendingSeconds(0);
+    setPausedTime(null);
+  };
+
+  const addTime = (additionalSeconds: number) => {
+    const newTotal = pendingSeconds + additionalSeconds;
+    if (newTotal > MAX_TIMER_SECONDS) {
+      setShowMaxWarning(true);
+      setTimeout(() => setShowMaxWarning(false), 3000);
+      return;
+    }
+    setPendingSeconds(newTotal);
+  };
+
+  const addTimeToActive = async (additionalSeconds: number) => {
+    if (!room.timerEndsAt || !room.timerDuration) return;
+    const newDuration = room.timerDuration + additionalSeconds;
+    if (newDuration > MAX_TIMER_SECONDS) {
+      setShowMaxWarning(true);
+      setTimeout(() => setShowMaxWarning(false), 3000);
+      return;
+    }
+    const endsAt = Timestamp.fromMillis(
+      Date.now() + (timeLeft || 0) * 1000 + additionalSeconds * 1000
+    );
+    await updateRoom(room.roomId, {
+      timerEndsAt: endsAt,
+      timerDuration: newDuration,
+    });
+  };
+
+  const pauseTimer = async () => {
+    if (!room.timerEndsAt || timeLeft === null) return;
+    setPausedTime(timeLeft);
+    await updateRoom(room.roomId, {
+      timerEndsAt: deleteField(),
+      timerDuration: timeLeft,
+    });
+  };
+
+  const resumeTimer = async () => {
+    if (pausedTime === null) return;
+    const endsAt = Timestamp.fromMillis(Date.now() + pausedTime * 1000);
+    await updateRoom(room.roomId, {
+      timerEndsAt: endsAt,
+      timerDuration: pausedTime,
+    });
+    setPausedTime(null);
   };
 
   const stopTimer = async () => {
+    setPausedTime(null);
     await updateRoom(room.roomId, {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerEndsAt: deleteField() as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      timerDuration: deleteField() as any,
+      timerEndsAt: deleteField(),
+      timerDuration: deleteField(),
     });
   };
 
@@ -109,8 +154,10 @@ export default function VotingTimer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const isActive = timeLeft !== null && timeLeft > 0;
-  const isExpired = timeLeft === 0;
+  const isPaused = pausedTime !== null;
+  const isActive = (timeLeft !== null && timeLeft > 0) || isPaused;
+  const isExpired = timeLeft === 0 && !isPaused;
+  const hasPendingTime = pendingSeconds > 0 && !isActive && !isExpired;
 
   return (
     <div className="flex h-full flex-col rounded-xl bg-[var(--surface)] p-4 shadow-lg">
@@ -124,10 +171,15 @@ export default function VotingTimer() {
             {isActive || isExpired ? (
               <p
                 className={`font-mono text-lg font-bold ${
-                  isExpired ? 'text-red-500' : 'text-[var(--accent-primary)]'
+                  isExpired
+                    ? 'text-red-500'
+                    : isPaused
+                      ? 'text-yellow-600'
+                      : 'text-[var(--accent-primary)]'
                 }`}
               >
-                {formatTime(timeLeft!)}
+                {formatTime(isPaused ? pausedTime! : timeLeft!)}
+                {isPaused && <span className="ml-2 text-xs">(Paused)</span>}
               </p>
             ) : (
               <p className="text-base text-[var(--text-muted)]">Not started</p>
@@ -136,84 +188,103 @@ export default function VotingTimer() {
         </div>
 
         {canControlTimer && (
-          <div className="flex gap-2">
-            {!isActive && !isExpired && (
-              <>
-                {showInput ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={customSeconds}
-                      onChange={(e) => setCustomSeconds(e.target.value)}
-                      placeholder="Sec"
-                      min="1"
-                      max={MAX_TIMER_SECONDS}
-                      className="w-16 [appearance:textfield] rounded-lg border-2 border-[var(--accent-primary)] bg-[var(--background)] px-2 py-1 text-sm text-[var(--text)] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      autoComplete="off"
-                      autoFocus
-                    />
+          <div className="flex flex-col gap-2">
+            {showMaxWarning && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500">
+                <AlertCircle className="h-4 w-4" />
+                <span>Max timer is {MAX_TIMER_SECONDS}s</span>
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {!isActive && !isExpired && (
+                <>
+                  <button
+                    onClick={() => addTime(30)}
+                    className="rounded-lg bg-[var(--accent-primary)] px-3 py-2 text-sm font-semibold text-[var(--background)] transition-all hover:scale-110"
+                    title="Add 30 seconds"
+                  >
+                    +30s
+                  </button>
+                  {hasPendingTime && (
+                    <>
+                      <div className="flex items-center rounded-lg bg-[var(--background)] px-3 py-2 text-sm font-semibold text-[var(--text)]">
+                        {pendingSeconds}s
+                      </div>
+                      <button
+                        onClick={startTimer}
+                        className="rounded-lg bg-green-500 p-2 text-white transition-all hover:scale-110"
+                        title="Start timer"
+                      >
+                        <Play className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => setPendingSeconds(0)}
+                        className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110"
+                        title="Clear"
+                      >
+                        <RotateCcw className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+
+              {isActive && !isExpired && (
+                <>
+                  {!isPaused && (
                     <button
-                      onClick={startTimer}
-                      disabled={
-                        !customSeconds ||
-                        parseInt(customSeconds) <= 0 ||
-                        parseInt(customSeconds) > MAX_TIMER_SECONDS
-                      }
-                      className="rounded-lg bg-[var(--accent-primary)] p-2 text-[var(--background)] transition-all hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
-                      title="Start timer"
+                      onClick={() => addTimeToActive(30)}
+                      className="rounded-lg bg-[var(--accent-primary)] px-3 py-2 text-sm font-semibold text-[var(--background)] transition-all hover:scale-110"
+                      title="Add 30 seconds"
+                    >
+                      +30s
+                    </button>
+                  )}
+                  {isPaused ? (
+                    <button
+                      onClick={resumeTimer}
+                      className="rounded-lg bg-green-500 p-2 text-white transition-all hover:scale-110"
+                      title="Resume timer"
                     >
                       <Play className="h-5 w-5" />
                     </button>
+                  ) : (
                     <button
-                      onClick={() => {
-                        setShowInput(false);
-                        setCustomSeconds('');
-                      }}
-                      className="rounded-lg bg-[var(--surface)] p-2 text-[var(--text-muted)] transition-all hover:scale-110"
-                      title="Cancel"
+                      onClick={pauseTimer}
+                      className="rounded-lg bg-yellow-500 p-2 text-white transition-all hover:scale-110"
+                      title="Pause timer"
                     >
-                      ✕
+                      <Pause className="h-5 w-5" />
                     </button>
-                  </div>
-                ) : (
+                  )}
                   <button
-                    onClick={() => setShowInput(true)}
-                    className="rounded-lg bg-[var(--accent-primary)] px-3 py-2 text-sm font-semibold text-[var(--background)] transition-all hover:scale-110"
-                    title="Set timer"
+                    onClick={stopTimer}
+                    className="rounded-lg bg-red-500 p-2 text-white transition-all hover:scale-110"
+                    title="Stop timer"
                   >
-                    Set Timer
+                    <Square className="h-5 w-5" />
                   </button>
-                )}
-              </>
-            )}
+                  {!isPaused && (
+                    <button
+                      onClick={resetTimer}
+                      className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110 hover:text-[var(--accent-primary)]"
+                      title="Reset timer"
+                    >
+                      <RotateCcw className="h-5 w-5" />
+                    </button>
+                  )}
+                </>
+              )}
 
-            {isActive && (
-              <>
+              {isExpired && (
                 <button
                   onClick={stopTimer}
-                  className="rounded-lg bg-red-500 p-2 text-white transition-all hover:scale-110"
-                  title="Stop timer"
+                  className="rounded-lg bg-[var(--background)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
                 >
-                  <Pause className="h-5 w-5" />
+                  Clear
                 </button>
-                <button
-                  onClick={resetTimer}
-                  className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-110 hover:text-[var(--accent-primary)]"
-                  title="Reset timer"
-                >
-                  <RotateCcw className="h-5 w-5" />
-                </button>
-              </>
-            )}
-
-            {isExpired && (
-              <button
-                onClick={stopTimer}
-                className="rounded-lg bg-[var(--background)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
-              >
-                Clear
-              </button>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -222,11 +293,15 @@ export default function VotingTimer() {
         <div className="mt-4 border-t border-[var(--background)] pt-4">
           <button
             onClick={toggleReveal}
-            className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105 ${
-              room.state === 'revealed'
-                ? 'hover:bg-opacity-80 bg-[var(--background)] text-[var(--text)]'
-                : 'bg-[var(--accent-secondary)] text-[var(--background)]'
+            disabled={!hasVotes && room.state !== 'revealed'}
+            className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              !hasVotes && room.state !== 'revealed'
+                ? 'cursor-not-allowed bg-[var(--surface)] text-[var(--text-muted)] opacity-50'
+                : room.state === 'revealed'
+                  ? 'hover:bg-opacity-80 bg-[var(--background)] text-[var(--text)] hover:scale-102'
+                  : 'bg-[var(--accent-secondary)] text-[var(--background)] hover:scale-102'
             }`}
+            title={!hasVotes && room.state !== 'revealed' ? 'No votes to reveal yet' : ''}
           >
             <Eye className="h-4 w-4" />
             {room.state === 'revealed' ? 'Hide Votes' : 'Reveal Votes'}

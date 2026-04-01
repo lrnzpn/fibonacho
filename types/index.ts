@@ -68,6 +68,10 @@ export interface User {
 export interface VoteAnalytics {
   median: number | null;
   mode: number | null;
+  average: number | null;
+  highest: number | null;
+  lowest: number | null;
+  majority: VoteValue | null;
   distribution: Record<VoteValue, number>;
   hasConsensus: boolean;
   consensusThreshold: number;

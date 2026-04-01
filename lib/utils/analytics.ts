@@ -17,10 +17,22 @@ export const calculateVoteAnalytics = (votes: Vote[]): VoteAnalytics => {
     distribution[vote.value] = (distribution[vote.value] || 0) + 1;
   });
 
+  // Find majority (most voted value across all votes including special cards)
+  let majority: VoteValue | null = null;
+  if (votes.length > 0) {
+    const maxCount = Math.max(...Object.values(distribution));
+    const majorityValue = Object.entries(distribution).find(([, count]) => count === maxCount)?.[0];
+    majority = majorityValue as VoteValue | null;
+  }
+
   if (numericVotes.length === 0) {
     return {
       median: null,
       mode: null,
+      average: null,
+      highest: null,
+      lowest: null,
+      majority,
       distribution,
       hasConsensus: false,
       consensusThreshold: 0.75,
@@ -41,11 +53,23 @@ export const calculateVoteAnalytics = (votes: Vote[]): VoteAnalytics => {
   const maxFreq = Math.max(...Object.values(frequency));
   const mode = Number(Object.keys(frequency).find((k) => frequency[Number(k)] === maxFreq));
 
+  // Calculate average
+  const sum = numericVotes.reduce<number>((acc, val) => acc + val, 0);
+  const average = Math.round((sum / numericVotes.length) * 10) / 10;
+
+  // Calculate highest and lowest
+  const highest = Math.max(...numericVotes);
+  const lowest = Math.min(...numericVotes);
+
   const hasConsensus = checkConsensus(numericVotes);
 
   return {
     median,
     mode,
+    average,
+    highest,
+    lowest,
+    majority,
     distribution,
     hasConsensus,
     consensusThreshold: 0.75,

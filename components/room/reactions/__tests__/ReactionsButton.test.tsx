@@ -101,10 +101,10 @@ describe('ReactionsButton', () => {
     expect(reactionButtons.length).toBe(6); // 5 reactions + 1 main button
   });
 
-  it('should be positioned fixed at bottom right', () => {
+  it('should be positioned fixed at bottom center', () => {
     const { container } = render(<ReactionsButton onReaction={mockOnReaction} />);
 
-    const wrapper = container.querySelector('.fixed.right-8.bottom-8');
+    const wrapper = container.querySelector('.fixed.left-1\\/2');
     expect(wrapper).toBeInTheDocument();
   });
 });

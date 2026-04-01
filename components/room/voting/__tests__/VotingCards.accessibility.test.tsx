@@ -129,8 +129,16 @@ describe('VotingCards Accessibility', () => {
   describe('Keyboard Navigation', () => {
     it('should have focus ring classes on all cards', () => {
       renderWithContext();
-      const buttons = screen.getAllByRole('button');
-      buttons.forEach((button) => {
+      const votingButtons = screen
+        .getAllByRole('button')
+        .filter(
+          (btn) =>
+            btn.getAttribute('aria-label')?.includes('Vote') ||
+            btn.getAttribute('aria-label')?.includes('story points') ||
+            btn.getAttribute('aria-label')?.includes('Unknown') ||
+            btn.getAttribute('aria-label')?.includes('Coffee')
+        );
+      votingButtons.forEach((button) => {
         expect(button.className).toContain('focus:outline-none');
         expect(button.className).toContain('focus:ring-2');
         expect(button.className).toContain('focus:ring-[var(--accent-primary)]');
@@ -185,10 +193,10 @@ describe('VotingCards Accessibility', () => {
         votes: [mockVote],
       };
 
-      const { container } = renderWithContext(contextWithVote);
-      const checkmark = container.querySelector('[aria-hidden="true"]');
-      expect(checkmark).toBeInTheDocument();
-      expect(checkmark?.textContent).toBe('✓');
+      renderWithContext(contextWithVote);
+      const checkmarkText = screen.getByText('✓');
+      expect(checkmarkText).toBeInTheDocument();
+      expect(checkmarkText).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('should have role="status" on spectator message', () => {
@@ -269,7 +277,7 @@ describe('VotingCards Accessibility', () => {
     it('should have hover states on cards', () => {
       renderWithContext();
       const card5 = screen.getByRole('button', { name: 'Vote 5 story points' });
-      expect(card5.className).toContain('hover:scale-105');
+      expect(card5.className).toContain('hover:scale-110');
       expect(card5.className).toContain('hover:bg-[var(--accent-primary)]');
     });
 

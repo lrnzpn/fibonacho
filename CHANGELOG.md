@@ -1,5 +1,11 @@
 # fibonacho
 
+## 0.1.4
+
+### Patch Changes
+
+- chore: UI updates - voting cards, timer
+
 ## 0.1.3
 
 ### Patch Changes

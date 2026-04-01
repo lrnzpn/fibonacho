@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   description: 'A high-vibe, real-time pointing poker tool for agile teams.',
   keywords: ['planning poker', 'agile', 'scrum', 'estimation', 'fibonacci', 'team collaboration'],
   authors: [{ name: 'Fibonacho Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#3b82f6',
 };
 

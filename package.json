@@ -1,6 +1,6 @@
 {
   "name": "fibonacho",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,6 +19,7 @@
     "changeset:version": "changeset version"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "firebase": "^12.10.0",
     "framer-motion": "^12.38.0",
@@ -28,6 +29,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.1",
+    "tailwind-merge": "^3.5.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

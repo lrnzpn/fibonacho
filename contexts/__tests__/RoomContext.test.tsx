@@ -192,7 +192,7 @@ describe('RoomContext', () => {
       });
     });
 
-    it('should handle room not found error', async () => {
+    it('should handle room not found', async () => {
       let roomCallback: ((room: Room | null) => void) | null = null;
 
       mockSubscribeToRoom.mockImplementation((roomId, callback) => {
@@ -208,7 +208,7 @@ describe('RoomContext', () => {
         }
         expect(result.current.loading).toBe(false);
         expect(result.current.room).toBeNull();
-        expect(result.current.error).toBe('Room not found');
+        expect(result.current.error).toBeNull();
       });
     });
 

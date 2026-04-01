@@ -66,17 +66,23 @@ export function useRoom(roomId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     const unsubscribe = subscribeToRoom(roomId, (roomData) => {
-      if (!roomData) {
-        setError('Room not found');
+      if (!isMounted) return;
+
+      if (roomData) {
+        setRoom(roomData);
+        setError(null);
         setLoading(false);
-        return;
+      } else {
+        setLoading(false);
       }
-      setRoom(roomData);
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [roomId]);
 
   return { room, loading, error };

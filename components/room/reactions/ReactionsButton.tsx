@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { Smile } from 'lucide-react';
 import { ReactionType } from '@/types';
+import { APP_CONFIG } from '@/config';
 
 interface ReactionsButtonProps {
   onReaction: (reaction: ReactionType) => void;
 }
 
-const REACTIONS: ReactionType[] = ['🎉', '👍', '🤔', '🔥', '☕'];
+const REACTIONS = APP_CONFIG.reactions.availableReactions;
 
 export default function ReactionsButton({ onReaction }: ReactionsButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,14 +19,14 @@ export default function ReactionsButton({ onReaction }: ReactionsButtonProps) {
   };
 
   return (
-    <div className="fixed right-8 bottom-8 z-50">
+    <div className="fixed bottom-[200px] left-1/2 z-50 -translate-x-1/2 md:bottom-[220px]">
       {isOpen && (
-        <div className="mb-3 flex flex-col items-center gap-2 rounded-2xl bg-[var(--surface)] p-2 shadow-2xl">
+        <div className="mb-3 flex items-center justify-center gap-2 rounded-2xl bg-[var(--surface)] p-2 shadow-2xl">
           {REACTIONS.map((reaction) => (
             <button
               key={reaction}
               onClick={() => handleReaction(reaction)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-2xl transition-all hover:scale-125 hover:bg-[var(--background)]"
+              className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl transition-all hover:scale-125 hover:bg-[var(--background)]"
               title={`Send ${reaction}`}
             >
               {reaction}
@@ -36,7 +37,7 @@ export default function ReactionsButton({ onReaction }: ReactionsButtonProps) {
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-colors ${
+        className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full shadow-2xl transition-colors ${
           isOpen
             ? 'bg-[var(--accent-secondary)] text-[var(--background)]'
             : 'bg-[var(--accent-primary)] text-[var(--background)]'
