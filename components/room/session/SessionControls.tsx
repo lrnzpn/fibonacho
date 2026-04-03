@@ -7,6 +7,7 @@ import { updateRoom, getHistory } from '@/lib/firebase/firestore';
 import { Timestamp, deleteField } from 'firebase/firestore';
 import { Clock, Play, Pause, RotateCcw, History, Download, Copy, Check } from 'lucide-react';
 import { HistoryEntry } from '@/types';
+import { sanitizeNumber } from '@/lib/utils/sanitize';
 import { APP_CONFIG } from '@/config';
 
 const MAX_TIMER_SECONDS = APP_CONFIG.timer.maxSeconds;
@@ -84,8 +85,8 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
   const canControlTimer = isModerator || isRoomOwner;
 
   const startTimer = async () => {
-    const seconds = parseInt(customSeconds);
-    if (isNaN(seconds) || seconds <= 0 || seconds > MAX_TIMER_SECONDS) {
+    const seconds = sanitizeNumber(customSeconds, 1, MAX_TIMER_SECONDS);
+    if (seconds === null) {
       return;
     }
     const endsAt = Timestamp.fromMillis(Date.now() + seconds * 1000);
@@ -277,7 +278,14 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                           <input
                             type="number"
                             value={customSeconds}
-                            onChange={(e) => setCustomSeconds(e.target.value)}
+                            onChange={(e) => {
+                              const sanitized = sanitizeNumber(
+                                e.target.value,
+                                1,
+                                MAX_TIMER_SECONDS
+                              );
+                              setCustomSeconds(sanitized !== null ? sanitized.toString() : '');
+                            }}
                             placeholder="Sec"
                             min="1"
                             max={MAX_TIMER_SECONDS}
@@ -289,8 +297,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                             onClick={startTimer}
                             disabled={
                               !customSeconds ||
-                              parseInt(customSeconds) <= 0 ||
-                              parseInt(customSeconds) > MAX_TIMER_SECONDS
+                              sanitizeNumber(customSeconds, 1, MAX_TIMER_SECONDS) === null
                             }
                             className="rounded-lg bg-[var(--accent-primary)] p-2 text-[var(--background)] transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                             title="Start timer"

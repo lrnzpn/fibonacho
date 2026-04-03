@@ -4,6 +4,7 @@ import { useState, useContext } from 'react';
 import { RoomContext } from '@/contexts/RoomContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateRoom } from '@/lib/firebase/firestore';
+import { sanitizeTopic } from '@/lib/utils/sanitize';
 import { Edit2, Check, X } from 'lucide-react';
 
 export default function TopicEditor() {
@@ -30,8 +31,9 @@ export default function TopicEditor() {
   };
 
   const handleSave = async () => {
-    if (!topic.trim()) return;
-    await updateRoom(room.roomId, { currentTopic: topic.trim() });
+    const sanitized = sanitizeTopic(topic);
+    if (!sanitized) return;
+    await updateRoom(room.roomId, { currentTopic: sanitized });
     setIsEditing(false);
   };
 
@@ -50,7 +52,7 @@ export default function TopicEditor() {
           {isEditing ? (
             <textarea
               value={topic}
-              onChange={(e) => setTopic(e.target.value)}
+              onChange={(e) => setTopic(sanitizeTopic(e.target.value, 500))}
               placeholder="Enter the story or task to estimate..."
               className="w-full resize-none rounded-xl border-2 border-[var(--accent-primary)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--text)] transition-all placeholder:text-[var(--text-muted)] focus:outline-none"
               rows={2}

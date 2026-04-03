@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createRoom, addParticipant, getRoom, getParticipantCount } from '@/lib/firebase/firestore';
 import { ParticipantRole } from '@/types';
 import { setSessionStorage } from '@/lib/utils/room';
+import { sanitizeDisplayName } from '@/lib/utils/sanitize';
 import { LIMITS } from '@/lib/constants';
 
 interface JoinRoomModalProps {
@@ -21,12 +22,14 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!displayName.trim()) {
+    const sanitized = sanitizeDisplayName(displayName, LIMITS.MAX_DISPLAY_NAME_LENGTH);
+
+    if (!sanitized) {
       setError('Please enter your name');
       return;
     }
 
-    if (displayName.trim().length > LIMITS.MAX_DISPLAY_NAME_LENGTH) {
+    if (sanitized.length > LIMITS.MAX_DISPLAY_NAME_LENGTH) {
       setError(`Name must be ${LIMITS.MAX_DISPLAY_NAME_LENGTH} characters or less`);
       return;
     }
@@ -52,7 +55,7 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
       if (!existingRoom) {
         await createRoom(roomId, currentUser.uid);
         await addParticipant(roomId, currentUser.uid, {
-          displayName: displayName.trim(),
+          displayName: sanitized,
           role: 'moderator',
         });
       } else {
@@ -64,12 +67,12 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
         }
 
         await addParticipant(roomId, currentUser.uid, {
-          displayName: displayName.trim(),
+          displayName: sanitized,
           role,
         });
       }
 
-      setSessionStorage('displayName', displayName.trim());
+      setSessionStorage('displayName', sanitized);
       setSessionStorage('roomId', roomId);
       onJoin();
     } catch (err) {
@@ -100,7 +103,9 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
               id="displayName"
               type="text"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) =>
+                setDisplayName(sanitizeDisplayName(e.target.value, LIMITS.MAX_DISPLAY_NAME_LENGTH))
+              }
               placeholder="Enter your name"
               className="w-full rounded-2xl border-2 border-transparent bg-[var(--background)] px-5 py-4 text-lg text-[var(--text)] transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               maxLength={LIMITS.MAX_DISPLAY_NAME_LENGTH}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateRoomId, getSessionStorage, setSessionStorage } from '@/lib/utils/room';
+import { sanitizeRoomCode } from '@/lib/utils/sanitize';
 import { LIMITS } from '@/lib/constants';
 import NachoIcon from '@/components/icons/NachoIcon';
 import Footer from '@/components/Footer';
@@ -35,9 +36,15 @@ export default function Home() {
 
   const handleJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    if (roomId.trim()) {
-      router.push(`/room/${roomId.trim()}`);
+    const sanitized = sanitizeRoomCode(roomId);
+    if (sanitized) {
+      router.push(`/room/${sanitized}`);
     }
+  };
+
+  const handleRoomCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeRoomCode(e.target.value);
+    setRoomId(sanitized);
   };
 
   return (
@@ -99,7 +106,7 @@ export default function Home() {
                 id="room-code-input"
                 type="text"
                 value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
+                onChange={handleRoomCodeChange}
                 placeholder="ENTER ROOM CODE"
                 className="w-full rounded-2xl border-2 border-transparent bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] text-[var(--text)] uppercase transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
                 maxLength={8}

@@ -1,5 +1,11 @@
 # fibonacho
 
+## 0.1.5
+
+### Patch Changes
+
+- chore: add sanitizer to inputs
+
 ## 0.1.4
 
 ### Patch Changes
