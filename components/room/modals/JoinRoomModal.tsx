@@ -1,12 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createRoom, addParticipant, getRoom, getParticipantCount } from '@/lib/firebase/firestore';
 import { ParticipantRole } from '@/types';
 import { setSessionStorage } from '@/lib/utils/room';
 import { sanitizeDisplayName } from '@/lib/utils/sanitize';
+import { ArrowLeft } from 'lucide-react';
 import { LIMITS } from '@/lib/constants';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
+import { cn } from '@/lib/utils/cn';
 
 interface JoinRoomModalProps {
   roomId: string;
@@ -14,6 +20,7 @@ interface JoinRoomModalProps {
 }
 
 export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
+  const router = useRouter();
   const { user, signIn } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [role, setRole] = useState<ParticipantRole>('voter');
@@ -85,21 +92,30 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-8 rounded-3xl bg-[var(--surface)] p-10 shadow-2xl">
-        <div className="space-y-3 text-center">
-          <h2 className="text-4xl font-bold text-[var(--text)]">Join Room</h2>
-          <p className="font-mono text-xl tracking-wider text-[var(--text-muted)]">{roomId}</p>
-        </div>
+      <div className="w-full max-w-md space-y-4">
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center gap-2 text-sm text-[var(--text-muted)] transition-all hover:text-[var(--accent-primary)]"
+          aria-label="Back to home"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Home</span>
+        </button>
+        <Card padding="lg" className="space-y-6 rounded-3xl">
+          <div className="space-y-2 text-center">
+            <h2 className="text-4xl font-bold text-[var(--text)]">Join Room</h2>
+            <p className="font-mono text-xl tracking-wider text-[var(--text-muted)]">{roomId}</p>
+          </div>
 
         <form onSubmit={handleJoin} className="space-y-6">
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label
               htmlFor="displayName"
               className="block text-sm font-semibold tracking-wide text-[var(--text)] uppercase"
             >
               Your Name
             </label>
-            <input
+            <Input
               id="displayName"
               type="text"
               value={displayName}
@@ -107,7 +123,6 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
                 setDisplayName(sanitizeDisplayName(e.target.value, LIMITS.MAX_DISPLAY_NAME_LENGTH))
               }
               placeholder="Enter your name"
-              className="w-full rounded-2xl border-2 border-transparent bg-[var(--background)] px-5 py-4 text-lg text-[var(--text)] transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
               maxLength={LIMITS.MAX_DISPLAY_NAME_LENGTH}
               autoComplete="off"
               autoFocus
@@ -115,34 +130,38 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
           </div>
 
           <div className="space-y-3">
-            <label className="block text-sm font-semibold tracking-wide text-[var(--text)] uppercase">
+            <label id="role-label" className="block text-sm font-semibold tracking-wide text-[var(--text)] uppercase">
               Role
             </label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4" role="group" aria-labelledby="role-label">
               <button
                 type="button"
                 onClick={() => setRole('voter')}
-                className={`rounded-2xl px-5 py-4 font-semibold transition-all ${
+                aria-pressed={role === 'voter'}
+                className={cn(
+                  'rounded-2xl px-5 py-4 font-semibold transition-all',
                   role === 'voter'
                     ? 'scale-105 bg-[var(--accent-primary)] text-[var(--background)] shadow-lg'
                     : 'hover:bg-opacity-20 bg-[var(--background)] text-[var(--text)] hover:scale-105 hover:bg-[var(--accent-primary)]'
-                }`}
+                )}
               >
                 Voter
               </button>
               <button
                 type="button"
                 onClick={() => setRole('spectator')}
-                className={`rounded-2xl px-5 py-4 font-semibold transition-all ${
+                aria-pressed={role === 'spectator'}
+                className={cn(
+                  'rounded-2xl px-5 py-4 font-semibold transition-all',
                   role === 'spectator'
                     ? 'scale-105 bg-[var(--accent-primary)] text-[var(--background)] shadow-lg'
                     : 'hover:bg-opacity-20 bg-[var(--background)] text-[var(--text)] hover:scale-105 hover:bg-[var(--accent-primary)]'
-                }`}
+                )}
               >
                 Spectator
               </button>
             </div>
-            <p className="pt-1 text-sm leading-relaxed text-[var(--text-muted)]">
+            <p id="role-description" className="pt-1 text-sm leading-relaxed text-[var(--text-muted)]">
               {role === 'voter' ? 'Can vote and see results' : 'View-only, cannot vote'}
             </p>
           </div>
@@ -153,14 +172,17 @@ export default function JoinRoomModal({ roomId, onJoin }: JoinRoomModalProps) {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={loading || !displayName.trim()}
-            className="mt-2 w-full rounded-2xl bg-[var(--accent-primary)] px-8 py-5 text-lg font-semibold text-[var(--background)] transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            variant="primary"
+            size="md"
+            fullWidth
           >
             {loading ? 'Joining...' : 'Join Room'}
-          </button>
+          </Button>
         </form>
+        </Card>
       </div>
     </div>
   );

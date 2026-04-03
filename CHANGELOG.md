@@ -1,5 +1,11 @@
 # fibonacho
 
+## 0.1.6
+
+### Patch Changes
+
+- chore: improve code readability by extracting tailwind styles into files and creating reusable components
+
 ## 0.1.5
 
 ### Patch Changes

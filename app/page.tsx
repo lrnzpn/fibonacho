@@ -7,6 +7,8 @@ import { sanitizeRoomCode } from '@/lib/utils/sanitize';
 import { LIMITS } from '@/lib/constants';
 import NachoIcon from '@/components/icons/NachoIcon';
 import Footer from '@/components/Footer';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 export default function Home() {
   const router = useRouter();
@@ -78,13 +80,15 @@ export default function Home() {
               </div>
             )}
             <div>
-              <button
+              <Button
                 onClick={handleCreateRoom}
-                className="w-full rounded-2xl bg-[var(--accent-primary)] px-8 py-4 text-xl font-bold text-[var(--background)] transition-all hover:scale-[1.02] hover:opacity-90 focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none active:scale-[0.98]"
+                variant="primary"
+                fullWidth
+                className="py-4 text-xl font-bold focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--background)]"
                 aria-label="Create a new planning poker room"
               >
                 Create New Room
-              </button>
+              </Button>
             </div>
 
             <div className="relative py-3" aria-hidden="true">
@@ -102,25 +106,27 @@ export default function Home() {
               <label htmlFor="room-code-input" className="sr-only">
                 Enter room code
               </label>
-              <input
+              <Input
                 id="room-code-input"
                 type="text"
                 value={roomId}
                 onChange={handleRoomCodeChange}
                 placeholder="ENTER ROOM CODE"
-                className="w-full rounded-2xl border-2 border-transparent bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] text-[var(--text)] uppercase transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+                className="bg-[var(--surface)] px-4 py-2 text-center font-mono text-xl tracking-[0.3em] uppercase"
                 maxLength={8}
                 autoComplete="off"
                 aria-describedby="room-code-help"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={!roomId.trim()}
-                className="w-full rounded-2xl bg-[var(--surface)] px-8 py-4 text-xl font-bold text-[var(--text)] transition-all hover:scale-[1.02] hover:bg-[var(--accent-secondary)] hover:text-[var(--background)] focus:ring-2 focus:ring-[var(--accent-secondary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text)]"
+                variant="surface"
+                fullWidth
+                className="py-4 text-xl font-bold focus:ring-2 focus:ring-[var(--accent-secondary)] focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:hover:bg-[var(--surface)] disabled:hover:text-[var(--text)]"
                 aria-label="Join room with entered code"
               >
                 Join Room
-              </button>
+              </Button>
               <p id="room-code-help" className="sr-only">
                 Enter an 8-character room code to join an existing planning poker session
               </p>

@@ -9,6 +9,9 @@ import { Clock, Play, Pause, RotateCcw, History, Download, Copy, Check } from 'l
 import { HistoryEntry } from '@/types';
 import { sanitizeNumber } from '@/lib/utils/sanitize';
 import { APP_CONFIG } from '@/config';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 
 const MAX_TIMER_SECONDS = APP_CONFIG.timer.maxSeconds;
 
@@ -21,7 +24,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
   const { user } = useAuth();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showInput, setShowInput] = useState(false);
-  const [customSeconds, setCustomSeconds] = useState<string>('');
+  const [timerSeconds, setTimerSeconds] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -85,7 +88,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
   const canControlTimer = isModerator || isRoomOwner;
 
   const startTimer = async () => {
-    const seconds = sanitizeNumber(customSeconds, 1, MAX_TIMER_SECONDS);
+    const seconds = sanitizeNumber(timerSeconds, 1, MAX_TIMER_SECONDS);
     if (seconds === null) {
       return;
     }
@@ -95,7 +98,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
       timerDuration: seconds,
     });
     setShowInput(false);
-    setCustomSeconds('');
+    setTimerSeconds('');
   };
 
   const stopTimer = async () => {
@@ -157,7 +160,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
   const isExpired = timeLeft === 0;
 
   return (
-    <div className="rounded-xl bg-[var(--surface)] p-4 shadow-lg">
+    <Card>
       <div className="flex flex-col gap-4">
         {/* History Section */}
         <div className="border-b border-[var(--background)] pb-4">
@@ -275,30 +278,29 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                     <>
                       {showInput ? (
                         <div className="flex items-center gap-2">
-                          <input
+                          <Input
                             type="number"
-                            value={customSeconds}
+                            variant="number"
+                            value={timerSeconds}
                             onChange={(e) => {
                               const sanitized = sanitizeNumber(
                                 e.target.value,
                                 1,
                                 MAX_TIMER_SECONDS
                               );
-                              setCustomSeconds(sanitized !== null ? sanitized.toString() : '');
+                              setTimerSeconds(sanitized !== null ? sanitized.toString() : '');
                             }}
                             placeholder="Sec"
                             min="1"
                             max={MAX_TIMER_SECONDS}
-                            className="w-16 [appearance:textfield] rounded-lg border-2 border-[var(--accent-primary)] bg-[var(--background)] px-2 py-1.5 text-sm text-[var(--text)] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="w-16 rounded-lg border-2 border-[var(--accent-primary)]"
                             autoComplete="off"
                             autoFocus
+                            fullWidth={false}
                           />
                           <button
                             onClick={startTimer}
-                            disabled={
-                              !customSeconds ||
-                              sanitizeNumber(customSeconds, 1, MAX_TIMER_SECONDS) === null
-                            }
+                            disabled={!timerSeconds}
                             className="rounded-lg bg-[var(--accent-primary)] p-2 text-[var(--background)] transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                             title="Start timer"
                           >
@@ -307,7 +309,7 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                           <button
                             onClick={() => {
                               setShowInput(false);
-                              setCustomSeconds('');
+                              setTimerSeconds('');
                             }}
                             className="rounded-lg bg-[var(--background)] p-2 text-[var(--text-muted)] transition-all hover:scale-105"
                             title="Cancel"
@@ -316,13 +318,15 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                           </button>
                         </div>
                       ) : (
-                        <button
+                        <Button
                           onClick={() => setShowInput(true)}
-                          className="rounded-lg bg-[var(--accent-primary)] px-3 py-2 text-xs font-semibold text-[var(--background)] transition-all hover:scale-105"
+                          variant="primary"
+                          size="sm"
+                          className="text-xs"
                           title="Set timer"
                         >
                           Set Timer
-                        </button>
+                        </Button>
                       )}
                     </>
                   )}
@@ -347,12 +351,14 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
                   )}
 
                   {isExpired && (
-                    <button
+                    <Button
                       onClick={stopTimer}
-                      className="rounded-lg bg-[var(--background)] px-3 py-2 text-xs font-semibold text-[var(--text)] transition-all hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs hover:bg-[var(--accent-primary)] hover:text-[var(--background)]"
                     >
                       Clear
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -360,6 +366,6 @@ export default function SessionControls({ roomId }: SessionControlsProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
