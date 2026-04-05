@@ -43,9 +43,10 @@ describe('sanitizeInput', () => {
 });
 
 describe('sanitizeRoomCode', () => {
-  it('should convert to uppercase', () => {
-    expect(sanitizeRoomCode('abc123')).toBe('ABC123');
-    expect(sanitizeRoomCode('test')).toBe('TEST');
+  it('should preserve case', () => {
+    expect(sanitizeRoomCode('abc123')).toBe('abc123');
+    expect(sanitizeRoomCode('TeSt')).toBe('TeSt');
+    expect(sanitizeRoomCode('ABC123')).toBe('ABC123');
   });
 
   it('should remove non-alphanumeric characters', () => {
@@ -65,8 +66,8 @@ describe('sanitizeRoomCode', () => {
   });
 
   it('should remove XSS attempts', () => {
-    expect(sanitizeRoomCode('<script>alert(1)</script>')).toBe('SCRIPTAL');
-    expect(sanitizeRoomCode('javascript:alert(1)')).toBe('JAVASCRI');
+    expect(sanitizeRoomCode('<script>alert(1)</script>')).toBe('scriptal');
+    expect(sanitizeRoomCode('javascript:alert(1)')).toBe('javascri');
   });
 });
 

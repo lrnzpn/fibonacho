@@ -1,5 +1,11 @@
 # fibonacho
 
+## 0.1.7
+
+### Patch Changes
+
+- fix: Fix Join Room bug by changing casing on copy
+
 ## 0.1.6
 
 ### Patch Changes

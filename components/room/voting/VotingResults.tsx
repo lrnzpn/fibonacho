@@ -23,7 +23,8 @@ export default function VotingResults() {
   const currentParticipant = participants.find((p) => p.uid === user.uid);
   const isModerator = currentParticipant?.role === 'moderator';
 
-  const voters = participants.filter((p) => p.role === 'voter');
+  // Include both voters and moderators in vote counting (spectators excluded)
+  const voters = participants.filter((p) => p.role === 'voter' || p.role === 'moderator');
   const voterVotes = votes.filter((v) => voters.some((voter) => voter.uid === v.userId));
   const allVoted = voters.length > 0 && voterVotes.length === voters.length;
   const analytics = calculateVoteAnalytics(votes);

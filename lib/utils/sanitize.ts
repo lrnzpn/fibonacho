@@ -11,10 +11,7 @@ export const sanitizeInput = (input: string): string => {
 export const sanitizeRoomCode = (code: string): string => {
   if (!code) return '';
 
-  return code
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, 8);
+  return code.replace(/[^A-Za-z0-9]/g, '').slice(0, 8);
 };
 
 export const sanitizeDisplayName = (name: string, maxLength: number = 50): string => {

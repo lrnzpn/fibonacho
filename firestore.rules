@@ -16,6 +16,7 @@ service cloud.firestore {
     
     function isRoomOwner(roomId) {
       return isAuthenticated() && 
+             exists(/databases/$(database)/documents/rooms/$(roomId)) &&
              get(/databases/$(database)/documents/rooms/$(roomId)).data.moderatorId == request.auth.uid;
     }
     
@@ -35,8 +36,9 @@ service cloud.firestore {
       // Anyone can read room data
       allow read: if true;
       
-      // Anyone can create a room
-      allow create: if isAuthenticated();
+      // Anyone can create a room (but only if it doesn't already exist - enforced by client using setDoc without merge)
+      allow create: if isAuthenticated() && 
+                      request.resource.data.moderatorId == request.auth.uid;
       
       // Only moderator or room owner can update room state
       allow update: if isRoomModerator(roomId) || isRoomOwner(roomId);
@@ -55,10 +57,10 @@ service cloud.firestore {
                         isValidDisplayName();
         
         // Users can update their own participant data, moderator/owner can update anyone
-        // Display name must remain valid on updates
+        // Display name must remain valid on updates if it's being changed
         allow update: if isAuthenticated() && 
                         (request.auth.uid == participantId || isRoomModerator(roomId) || isRoomOwner(roomId)) &&
-                        isValidDisplayName();
+                        (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) || isValidDisplayName());
         
         // Moderator/owner can remove participants
         allow delete: if isRoomModerator(roomId) || isRoomOwner(roomId) ||

@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
+import { getAuth, Auth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -19,6 +19,13 @@ if (typeof window !== 'undefined') {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
   db = getFirestore(app);
+
+  // Enable persistence for anonymous auth (skip in test environment)
+  if (process.env.NODE_ENV !== 'test') {
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+      console.error('Failed to set auth persistence:', error);
+    });
+  }
 }
 
 export { app, auth, db };

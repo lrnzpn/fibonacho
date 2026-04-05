@@ -6,6 +6,7 @@ import JoinRoomModal from '@/components/room/modals/JoinRoomModal';
 import VotingInterface from '@/components/room/voting/VotingInterface';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRoom } from '@/contexts/RoomContext';
+import { getParticipant } from '@/lib/firebase/firestore';
 
 export default function RoomPage() {
   const params = useParams();
@@ -13,11 +14,34 @@ export default function RoomPage() {
   const { user, loading: authLoading } = useAuth();
   const { room, loading: roomLoading } = useRoom(roomId);
   const [hasJoined, setHasJoined] = useState(false);
+  const [checkingParticipant, setCheckingParticipant] = useState(true);
   const roomRef = useRef(room);
 
   useEffect(() => {
     roomRef.current = room;
   }, [room]);
+
+  // Check if user is already a participant on mount/user change
+  useEffect(() => {
+    const checkExistingParticipant = async () => {
+      if (user && roomId && !authLoading) {
+        try {
+          const participant = await getParticipant(roomId, user.uid);
+          if (participant) {
+            setHasJoined(true);
+          }
+        } catch (error) {
+          console.error('Error checking participant:', error);
+        } finally {
+          setCheckingParticipant(false);
+        }
+      } else if (!authLoading) {
+        setCheckingParticipant(false);
+      }
+    };
+
+    checkExistingParticipant();
+  }, [user, roomId, authLoading]);
 
   useEffect(() => {
     if (!roomLoading && !room) {
@@ -31,7 +55,7 @@ export default function RoomPage() {
     }
   }, [room, roomLoading]);
 
-  if (authLoading || roomLoading) {
+  if (authLoading || roomLoading || checkingParticipant) {
     return (
       <div
         className="flex min-h-screen items-center justify-center"

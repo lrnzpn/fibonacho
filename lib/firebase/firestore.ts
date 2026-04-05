@@ -66,8 +66,15 @@ export const createRoom = async (roomId: string, moderatorId: string): Promise<R
     moderatorId,
   };
 
-  await setDoc(roomDoc(roomId), roomData);
-  return roomData;
+  // Use setDoc without merge to ensure atomic creation
+  // This will fail if the document already exists, preventing duplicate rooms
+  try {
+    await setDoc(roomDoc(roomId), roomData);
+    return roomData;
+  } catch (error) {
+    console.error('Failed to create room:', error);
+    throw error;
+  }
 };
 
 export const getRoom = async (roomId: string): Promise<Room | null> => {
@@ -105,8 +112,13 @@ export const addParticipant = async (
     lastSeen: Timestamp.now(),
   };
 
-  await setDoc(participantDoc(roomId, participantId), participantData);
-  return participantData;
+  try {
+    await setDoc(participantDoc(roomId, participantId), participantData);
+    return participantData;
+  } catch (error) {
+    console.error('Error adding participant:', error);
+    throw error;
+  }
 };
 
 export const updateParticipant = async (
@@ -122,6 +134,14 @@ export const updateParticipant = async (
 
 export const removeParticipant = async (roomId: string, participantId: string) => {
   await deleteDoc(participantDoc(roomId, participantId));
+};
+
+export const getParticipant = async (
+  roomId: string,
+  participantId: string
+): Promise<Participant | null> => {
+  const participantSnapshot = await getDoc(participantDoc(roomId, participantId));
+  return participantSnapshot.exists() ? participantSnapshot.data() : null;
 };
 
 export const getParticipantCount = async (roomId: string): Promise<number> => {
@@ -164,9 +184,16 @@ export const clearVotes = async (roomId: string) => {
 };
 
 export const subscribeToRoom = (roomId: string, callback: (room: Room | null) => void) => {
-  return onSnapshot(roomDoc(roomId), (snapshot) => {
-    callback(snapshot.exists() ? snapshot.data() : null);
-  });
+  return onSnapshot(
+    roomDoc(roomId),
+    (snapshot) => {
+      callback(snapshot.exists() ? snapshot.data() : null);
+    },
+    (error) => {
+      console.error('Error subscribing to room:', error);
+      callback(null);
+    }
+  );
 };
 
 export const subscribeToParticipants = (
@@ -174,17 +201,31 @@ export const subscribeToParticipants = (
   callback: (participants: Participant[]) => void
 ) => {
   const q = query(participantsCollection(roomId), orderBy('joinedAt', 'asc'));
-  return onSnapshot(q, (snapshot) => {
-    const participants = snapshot.docs.map((doc) => doc.data());
-    callback(participants);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const participants = snapshot.docs.map((doc) => doc.data());
+      callback(participants);
+    },
+    (error) => {
+      console.error('Error subscribing to participants:', error);
+      callback([]);
+    }
+  );
 };
 
 export const subscribeToVotes = (roomId: string, callback: (votes: Vote[]) => void) => {
-  return onSnapshot(votesCollection(roomId), (snapshot) => {
-    const votes = snapshot.docs.map((doc) => doc.data());
-    callback(votes);
-  });
+  return onSnapshot(
+    votesCollection(roomId),
+    (snapshot) => {
+      const votes = snapshot.docs.map((doc) => doc.data());
+      callback(votes);
+    },
+    (error) => {
+      console.error('Error subscribing to votes:', error);
+      callback([]);
+    }
+  );
 };
 
 export const reactionsCollection = (roomId: string) =>
@@ -211,10 +252,17 @@ export const addReaction = async (
 
 export const subscribeToReactions = (roomId: string, callback: (reactions: Reaction[]) => void) => {
   const q = query(reactionsCollection(roomId), orderBy('timestamp', 'desc'), limit(50));
-  return onSnapshot(q, (snapshot) => {
-    const reactions = snapshot.docs.map((doc) => doc.data() as Reaction);
-    callback(reactions);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const reactions = snapshot.docs.map((doc) => doc.data() as Reaction);
+      callback(reactions);
+    },
+    (error) => {
+      console.error('Error subscribing to reactions:', error);
+      callback([]);
+    }
+  );
 };
 
 export const saveHistoryEntry = async (

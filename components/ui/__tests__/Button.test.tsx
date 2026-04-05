@@ -88,7 +88,11 @@ describe('Button', () => {
   });
 
   it('passes through additional props', () => {
-    render(<Button type="submit" data-testid="submit-btn">Submit</Button>);
+    render(
+      <Button type="submit" data-testid="submit-btn">
+        Submit
+      </Button>
+    );
     const button = screen.getByTestId('submit-btn');
     expect(button).toHaveAttribute('type', 'submit');
   });

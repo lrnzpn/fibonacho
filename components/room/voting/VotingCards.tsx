@@ -31,6 +31,7 @@ export default function VotingCards() {
     return null;
   }
 
+  // Only spectators cannot vote - both voters and moderators can vote
   if (currentParticipant.role === 'spectator') {
     return (
       <div className="rounded-2xl bg-[var(--surface)] px-6 py-16 text-center" role="status">

@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           {
             'bg-[var(--background)] px-5 py-4 text-lg text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)]':
               variant === 'default',
-            'bg-[var(--background)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent-primary)] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none':
+            '[appearance:textfield] bg-[var(--background)] px-2 py-1.5 text-sm text-[var(--text)] focus:border-[var(--accent-primary)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none':
               variant === 'number',
           },
           {
